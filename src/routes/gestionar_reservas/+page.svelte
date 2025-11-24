@@ -1,38 +1,28 @@
 <script>
-  import Navbar from "$lib/components/Navbar.svelte";
   import NavbarA from "$lib/components/NavbarA.svelte";
   import Footer from "$lib/components/Footer.svelte";
   import { onMount } from "svelte";
+    import Navbar from "$lib/components/Navbar.svelte";
 
+  let id_usuario = "";         // ID del usuario (ADMIN)
+  let date_start = "";
+  let date_end = "";
+  let availRooms = [];
+  let selectedRooms = [];
   let reservas = [];
   let error = "";
   let mensaje = "";
-  let loading = true;
 
-  let showCreateForm = false;
-  let date_start = "";
-  let date_end = "";
-
-  let user = null;
-  if (typeof localStorage !== "undefined") {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) user = JSON.parse(storedUser);
-  }
-
-  // ==========================
-  // Cargar todas las reservas
-  // ==========================
+  // Cargar TODAS las reservas
   async function cargarReservas() {
-    loading = true;
     try {
       const res = await fetch("https://inntech-backend.onrender.com/reservas/get_reservas");
       const data = await res.json();
-      if (!res.ok) throw new Error(data.detail || "Error al obtener reservas.");
-      reservas = data.data;
-    } catch (err) {
-      error = err.message;
-    } finally {
-      loading = false;
+      if (res.ok) reservas = data.data;
+      else reservas = [];
+    } catch (e) {
+      console.error(e);
+      reservas = [];
     }
   }
 
@@ -40,68 +30,150 @@
     cargarReservas();
   });
 
-  // ==========================
-  // Cancelar reserva
-  // ==========================
-  async function cancelarReserva(id) {
-    if (!confirm("¿Seguro quieres cancelar esta reserva?")) return;
+  // Buscar habitaciones disponibles
+  async function buscarHabitaciones() {
+    error = "";
+    mensaje = "";
+    availRooms = [];
+
+    if (!date_start || !date_end) {
+      error = "Seleccione fechas.";
+      return;
+    }
+
+    if (new Date(date_end) <= new Date(date_start)) {
+      error = "La fecha fin debe ser mayor que la fecha inicio.";
+      return;
+    }
 
     try {
-      const res = await fetch(`https://inntech-backend.onrender.com/reservas/cancelar/${id}`, {
-        method: "PUT"
-      });
+      const res = await fetch(
+        `https://inntech-backend.onrender.com/habitaciones/habitaciones_disponibles?date_start=${date_start}&date_end=${date_end}`
+      );
       const data = await res.json();
-      if (!res.ok) throw new Error(data.detail || "No se pudo cancelar la reserva.");
-      mensaje = "Reserva cancelada correctamente.";
-      await cargarReservas();
-    } catch (err) {
-      error = err.message;
+
+      if (!res.ok) {
+        error = data.detail || "Error buscando habitaciones.";
+        return;
+      }
+
+      availRooms = data.data.map(h => ({
+        id: h.id_habitacion ?? h.id ?? h.id_h,
+        nombre: h.nombre ?? h.numero ?? `#${h.id_habitacion ?? h.id ?? h.id_h}`,
+        raw: h
+      }));
+
+      if (availRooms.length === 0) {
+        mensaje = "No hay habitaciones disponibles en esas fechas.";
+      }
+    } catch (e) {
+      console.error(e);
+      error = "No hay conexión con el servidor.";
     }
   }
 
-  // ==========================
-  // Crear reserva
-  // ==========================
-  async function crearReserva() {
+  function agregarHab(id) {
+    const hab = availRooms.find(h => h.id === id);
+    if (!hab) {
+      error = "Habitación no encontrada.";
+      return;
+    }
+    if (selectedRooms.some(s => s.id === hab.id)) {
+      mensaje = "La habitación ya fue seleccionada.";
+      return;
+    }
+    selectedRooms = [...selectedRooms, hab];
+    mensaje = "";
+  }
+
+  function quitarHab(id) {
+    selectedRooms = selectedRooms.filter(s => s.id !== id);
+  }
+
+  // Crear reserva ADMIN
+  async function confirmarReserva() {
+    error = "";
+    mensaje = "";
+
+    if (!id_usuario) {
+      error = "Debe digitar el ID del usuario.";
+      return;
+    }
+
     if (!date_start || !date_end) {
-      error = "Seleccione fecha inicio y fecha fin.";
+      error = "Complete las fechas.";
+      return;
+    }
+
+    if (new Date(date_end) <= new Date(date_start)) {
+      error = "Fecha fin debe ser mayor a fecha inicio.";
+      return;
+    }
+
+    if (selectedRooms.length === 0) {
+      error = "Seleccione al menos una habitación.";
       return;
     }
 
     const payload = {
-      id_usuario: user.id_usuario,
+      id_usuario: Number(id_usuario),
       date_start,
-      date_end
+      date_end,
+      habitaciones: selectedRooms.map(s => Number(s.id))
     };
 
     try {
-      const res = await fetch("https://inntech-backend.onrender.com/reservas/create", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
+      const res = await fetch(
+        "https://inntech-backend.onrender.com/reservas/create_with_rooms",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        }
+      );
+
       const data = await res.json();
-      if (!res.ok) throw new Error(data.detail || data.message || "Error al crear reserva.");
+
+      if (!res.ok) {
+        error = data.detail || data.message || "Error creando reserva.";
+        return;
+      }
 
       mensaje = "Reserva creada correctamente.";
+      id_usuario = "";
       date_start = "";
       date_end = "";
-      showCreateForm = false;
+      selectedRooms = [];
+      availRooms = [];
       await cargarReservas();
-
-    } catch (err) {
-      error = err.message;
+    } catch (e) {
+      console.error(e);
+      error = "No hay conexión con el servidor.";
     }
   }
 
-  function toggleForm() {
-    showCreateForm = !showCreateForm;
+  // Cancelar reserva
+  async function cancelarReserva(id) {
     error = "";
     mensaje = "";
-  }
+    try {
+      const res = await fetch(
+        `https://inntech-backend.onrender.com/reservas/cancelar/${id}`,
+        { method: "PUT" }
+      );
+      const data = await res.json();
 
-  function estadoTexto(estado) {
-    return estado === 1 ? "Activa" : "Cancelada";
+      if (!res.ok) {
+        error = data.detail || "No se pudo cancelar.";
+        return;
+      }
+
+      mensaje = "Reserva cancelada.";
+      await cargarReservas();
+    } catch (e) {
+      console.error(e);
+      error = "Error de conexión.";
+    }
   }
 </script>
 
@@ -109,67 +181,113 @@
 <NavbarA />
 
 <section class="main">
-  <div class="box">
-    <h2 class="title">Gestionar Reservas</h2>
+  <h1 class="title">Gestión de Reservas (ADMIN)</h1>
 
-    {#if error}
-      <p class="error">{error}</p>
-    {/if}
-    {#if mensaje}
-      <p class="success">{mensaje}</p>
-    {/if}
+  {#if error}
+    <div class="error">{error}</div>
+  {/if}
 
-    <button class="btn-toggle" on:click={toggleForm}>
-      {showCreateForm ? "Cerrar formulario" : "Crear nueva reserva"}
-    </button>
+  {#if mensaje}
+    <div class="success">{mensaje}</div>
+  {/if}
 
-    {#if showCreateForm}
-      <div class="create-form">
+  <!-- FORMULARIO ADMIN -->
+  <div class="card">
+    <h2>Crear Reserva</h2>
+
+    <div class="form-grid">
+      <div>
+        <label>ID Usuario</label>
+        <input type="number" bind:value={id_usuario} placeholder="Ej: 10" />
+      </div>
+
+      <div>
         <label>Fecha inicio</label>
         <input type="date" bind:value={date_start} />
+      </div>
+
+      <div>
         <label>Fecha fin</label>
         <input type="date" bind:value={date_end} />
-        <button class="btn-confirm" on:click={crearReserva}>Crear reserva</button>
       </div>
+
+      <div style="align-self:end;">
+        <button class="btn-search" on:click={buscarHabitaciones}>
+          Buscar Habitaciones
+        </button>
+      </div>
+    </div>
+
+    {#if availRooms.length > 0}
+      <h3>Habitaciones disponibles</h3>
+      <ul class="list">
+        {#each availRooms as hab}
+          <li>
+            <button class="btn-add" on:click={() => agregarHab(hab.id)}>Agregar</button>
+            {hab.nombre} (ID: {hab.id})
+          </li>
+        {/each}
+      </ul>
     {/if}
 
-    {#if loading}
-      <div class="loader"></div>
+    <h3>Habitaciones seleccionadas</h3>
+    {#if selectedRooms.length === 0}
+      <p>No seleccionadas.</p>
     {:else}
-      {#if reservas.length === 0}
-        <p class="no-data">No hay reservas registradas.</p>
-      {:else}
-        <div class="table-container">
-          <table>
-            <thead>
-              <tr>
-                <th>ID Reserva</th>
-                <th>ID Usuario</th>
-                <th>Inicio</th>
-                <th>Fin</th>
-                <th>Estado</th>
-                <th>Acción</th>
-              </tr>
-            </thead>
-            <tbody>
-              {#each reservas as r}
-                <tr>
-                  <td>{r.id_reserva}</td>
-                  <td>{r.id_usuario}</td>
-                  <td>{r.date_start}</td>
-                  <td>{r.date_end}</td>
-                  <td>{estadoTexto(r.estado)}</td>
-                  <td>
-                    {#if r.estado === 1}
-                      <button class="btn-cancel" on:click={() => cancelarReserva(r.id_reserva)}>Cancelar</button>
-                    {/if}
-                  </td>
-                </tr>
-              {/each}
-            </tbody>
-          </table>
-        </div>
-      {/if}
+      <ul class="list">
+        {#each selectedRooms as s}
+          <li>
+            {s.nombre} (ID {s.id})
+            <button class="btn-remove" on:click={() => quitarHab(s.id)}>
+              Quitar
+            </button>
+          </li>
+        {/each}
+      </ul>
+    {/if}
+
+    <div style="margin-top:12px;">
+      <button class="btn-confirm" on:click={confirmarReserva} disabled={selectedRooms.length === 0 || !id_usuario}>
+        Confirmar Reserva
+      </button>
+    </div>
+  </div>
+
+  <!-- TODAS LAS RESERVAS -->
+  <div class="card">
+    <h2>Todas las reservas</h2>
+
+    {#if reservas.length === 0}
+      <p>No hay reservas.</p>
+    {:else}
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>ID Usuario</th>
+            <th>Inicio</th>
+            <th>Fin</th>
+            <th>Estado</th>
+            <th>Acción</th>
+          </tr>
+        </thead>
+        <tbody>
+          {#each reservas as r}
+            <tr>
+              <td>{r.id_reserva}</td>
+              <td>{r.id_usuario}</td>
+              <td>{r.date_start}</td>
+              <td>{r.date_end}</td>
+              <td>{r.estado}</td>
+              <td>
+                <button class="btn-cancel" on:click={() => cancelarReserva(r.id_reserva)}>
+                  Cancelar
+                </button>
+              </td>
+            </tr>
+          {/each}
+        </tbody>
+      </table>
     {/if}
   </div>
 </section>
@@ -178,145 +296,112 @@
 
 <style>
   .main {
-    min-height: calc(100vh - 160px);
-    padding: 50px 20px;
+    padding: 40px;
     background: #000;
+    min-height: calc(100vh - 160px);
     color: white;
-    display: flex;
-    justify-content: center;
   }
-
-  .box {
-    width: 100%;
-    max-width: 1000px;
-    background: rgba(255,165,0,0.08);
-    border: 2px solid orange;
-    padding: 30px;
-    border-radius: 12px;
-    box-shadow: 0 0 15px rgba(255,165,0,0.3);
-  }
-
   .title {
     text-align: center;
-    font-size: 2rem;
     color: orange;
-    margin-bottom: 25px;
-    font-weight: 700;
-  }
-
-  .btn-toggle {
-    background: orange;
-    border: none;
-    padding: 10px 18px;
-    border-radius: 8px;
-    font-weight: 700;
-    cursor: pointer;
     margin-bottom: 20px;
   }
-
-  .create-form {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-bottom: 20px;
+  .card {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 25px;
+    margin: 20px auto;
+    border-radius: 10px;
+    border: 1px solid orange;
+    width: 90%;
+    max-width: 900px;
   }
-
-  .create-form label {
-    width: 100%;
-    text-align: left;
-    font-weight: 600;
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 15px;
+    align-items: center;
   }
-
-  .create-form input {
-    flex: 1;
+  input[type="date"],
+  input[type="number"] {
     padding: 8px;
     border-radius: 6px;
     border: none;
+    background: #111;
+    color: white;
+    width: 100%;
   }
-
-  .btn-confirm {
-    background: orange;
+  .btn-search,
+  .btn-confirm,
+  .btn-add,
+  .btn-remove,
+  .btn-cancel {
+    padding: 8px 15px;
     border: none;
-    padding: 10px 18px;
-    border-radius: 8px;
-    font-weight: 700;
+    background: orange;
+    color: black;
+    border-radius: 6px;
     cursor: pointer;
+    font-weight: bold;
   }
-
+  .btn-remove,
   .btn-cancel {
     background: red;
     color: white;
-    border: none;
-    padding: 6px 12px;
+  }
+  .btn-confirm[disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  .list {
+    margin-top: 10px;
+  }
+  .list li {
+    margin-bottom: 8px;
+    display:flex;
+    gap:10px;
+    align-items:center;
+  }
+  .error {
+    background: red;
+    padding: 10px;
     border-radius: 6px;
     font-weight: bold;
-    cursor: pointer;
-  }
-
-  .loader {
-    border: 5px solid rgba(255,165,0,0.3);
-    border-top: 5px solid orange;
-    border-radius: 50%;
-    width: 45px;
-    height: 45px;
-    animation: spin 0.8s linear infinite;
-    margin: 20px auto;
-  }
-
-  @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-  }
-
-  .error {
-    color: red;
     text-align: center;
-    font-size: 1.1rem;
   }
-
   .success {
-    color: limegreen;
+    background: green;
+    padding: 10px;
+    border-radius: 6px;
+    font-weight: bold;
     text-align: center;
-    font-size: 1.1rem;
   }
-
-  .no-data {
-    text-align: center;
-    color: #ddd;
-  }
-
-  .table-container {
-    overflow-x: auto;
-  }
-
   table {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 10px;
-  }
-
-  th {
-    background: rgba(255,165,0,0.2);
-    color: orange;
-    padding: 12px;
-    border-bottom: 2px solid orange;
-    font-weight: 600;
-  }
-
-  td {
-    padding: 12px;
-    border-bottom: 1px solid rgba(255,165,0,0.3);
     color: white;
+    margin-top: 12px;
+  }
+  th, td {
+    padding: 10px;
+    border-bottom: 1px solid orange;
+    text-align: left;
+  }
+  select {
+    background: #111;
+    color: white;
+    border: 1px solid #444;
+    border-radius: 6px;
+  }
+  option {
+    background: #111;
   }
 
-  tr:hover td {
-    background: rgba(255,165,0,0.15);
-  }
-
-  @media (max-width: 600px) {
-    th, td, .create-form input {
-      font-size: 0.85rem;
-      padding: 8px;
-    }
+  /* responsive */
+  @media (max-width: 700px) {
+    .form-grid { grid-template-columns: 1fr; }
+    table, thead, tbody, th, td, tr { display: block; }
+    thead { display: none; }
+    tr { margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.03); padding: 10px; border-radius:6px; }
+    td { border: none; padding: 6px 0; }
   }
 </style>

@@ -101,7 +101,7 @@
               {#each eventos as e}
                 <tr>
                   <td data-label="Nombre">{e.nombre ?? e.title ?? "-"}</td>
-                  <td data-label="Fecha">{e.fecha ?? e.date ?? "-"}</td>
+                  <td data-label="Fecha">{e.fecha_inicio ?? e.date ?? "-"}</td>
                   <td data-label="Ubicación"
                     >{e.ubicacion ?? e.location ?? "-"}</td
                   >
