@@ -11,54 +11,50 @@
   let loading = { eventos: true, lugares: true, servicios: true };
   let error = { eventos: null, lugares: null, servicios: null };
 
-  const API = "https://turismo-sm.onrender.com"; // ajusta si corre en otro puerto
+  const API = "https://turismo-sm.onrender.com";
+
+  // Función genérica para manejar la carga y reintentos
+  async function cargarData(endpoint, category) {
+    loading[category] = true;
+    error[category] = null;
+    try {
+      // Implementación de reintentos con backoff exponencial
+      const MAX_RETRIES = 3;
+      for (let i = 0; i < MAX_RETRIES; i++) {
+        const res = await fetch(`${API}/${endpoint}/`);
+
+        if (res.ok) {
+          const data = await res.json();
+          return data;
+        }
+
+        if (i < MAX_RETRIES - 1) {
+          await new Promise((resolve) =>
+            setTimeout(resolve, Math.pow(2, i) * 1000),
+          );
+        } else {
+          throw new Error(`Error HTTP ${res.status}. No se pudo conectar.`);
+        }
+      }
+    } catch (e) {
+      console.error(`Error al cargar ${category}:`, e);
+      error[category] = `No se pudieron cargar los ${category}.`;
+      return [];
+    } finally {
+      loading[category] = false;
+    }
+  }
 
   async function cargarEventos() {
-    loading.eventos = true;
-    error.eventos = null;
-    try {
-      const res = await fetch(`${API}/evento/`);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      eventos = await res.json();
-    } catch (e) {
-      console.error("Error eventos:", e);
-      error.eventos = "No se pudieron cargar los eventos.";
-      eventos = [];
-    } finally {
-      loading.eventos = false;
-    }
+    eventos = await cargarData("evento", "eventos");
   }
 
   async function cargarLugares() {
-    loading.lugares = true;
-    error.lugares = null;
-    try {
-      const res = await fetch(`${API}/lugar/`);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      lugares = await res.json();
-    } catch (e) {
-      console.error("Error lugares:", e);
-      error.lugares = "No se pudieron cargar los lugares.";
-      lugares = [];
-    } finally {
-      loading.lugares = false;
-    }
+    lugares = await cargarData("lugar", "lugares");
   }
 
   async function cargarServicios() {
-    loading.servicios = true;
-    error.servicios = null;
-    try {
-      const res = await fetch(`${API}/servicio/`);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      servicios = await res.json();
-    } catch (e) {
-      console.error("Error servicios:", e);
-      error.servicios = "No se pudieron cargar los servicios.";
-      servicios = [];
-    } finally {
-      loading.servicios = false;
-    }
+    servicios = await cargarData("servicio", "servicios");
   }
 
   onMount(() => {
@@ -72,222 +68,347 @@
 <NavbarA />
 
 <section class="main">
-  <h1 class="page-title">Información Turística</h1>
+  <div class="main-content">
+    <h1 class="page-title">Información Turística</h1>
+    <p class="intro-text">
+      Descubra los eventos, lugares y servicios disponibles para enriquecer su
+      visita. Toda la información se actualiza en tiempo real desde la
+      plataforma de turismo.
+    </p>
 
-  <!-- EVENTOS -->
-  <div class="card">
-    <h2 class="card-title">Eventos</h2>
+    <!-- EVENTOS -->
+    <div class="card">
+      <h2 class="card-title">Eventos Destacados</h2>
 
-    {#if loading.eventos}
-      <p class="subtext">Cargando eventos...</p>
-    {:else if error.eventos}
-      <p class="error">{error.eventos}</p>
-    {:else if eventos.length === 0}
-      <p class="subtext">No hay eventos para mostrar.</p>
-    {:else}
-      <div class="table-wrap">
-        <table class="tabla">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Nombre</th>
-              <th>Fecha</th>
-              <th>Ubicación</th>
-              <th>Descripción</th>
-            </tr>
-          </thead>
-          <tbody>
-            {#each eventos as e}
+      {#if loading.eventos}
+        <div class="loading-bar"></div>
+      {:else if error.eventos}
+        <p class="message error-msg">{error.eventos}</p>
+      {:else if eventos.length === 0}
+        <p class="message subtext">No hay eventos próximos para mostrar.</p>
+      {:else}
+        <div class="table-wrap">
+          <table class="tabla">
+            <thead>
               <tr>
-                <td>{e.id ?? e._id ?? "-"}</td>
-                <td>{e.nombre ?? e.title ?? "-"}</td>
-                <td>{e.fecha ?? e.date ?? "-"}</td>
-                <td>{e.ubicacion ?? e.location ?? "-"}</td>
-                <td class="td-desc">{e.descripcion ?? e.description ?? "-"}</td>
+                <th>Nombre</th>
+                <th>Fecha</th>
+                <th>Ubicación</th>
+                <th class="td-desc-header">Descripción</th>
               </tr>
-            {/each}
-          </tbody>
-        </table>
-      </div>
-    {/if}
-  </div>
+            </thead>
+            <tbody>
+              {#each eventos as e}
+                <tr>
+                  <td data-label="Nombre">{e.nombre ?? e.title ?? "-"}</td>
+                  <td data-label="Fecha">{e.fecha ?? e.date ?? "-"}</td>
+                  <td data-label="Ubicación"
+                    >{e.ubicacion ?? e.location ?? "-"}</td
+                  >
+                  <td data-label="Descripción" class="td-desc"
+                    >{e.descripcion ?? e.description ?? "-"}</td
+                  >
+                </tr>
+              {/each}
+            </tbody>
+          </table>
+        </div>
+      {/if}
+    </div>
 
-  <!-- LUGARES -->
-  <div class="card">
-    <h2 class="card-title">Lugares Turísticos</h2>
+    <!-- LUGARES -->
+    <div class="card">
+      <h2 class="card-title">Lugares Turísticos</h2>
 
-    {#if loading.lugares}
-      <p class="subtext">Cargando lugares...</p>
-    {:else if error.lugares}
-      <p class="error">{error.lugares}</p>
-    {:else if lugares.length === 0}
-      <p class="subtext">No hay lugares para mostrar.</p>
-    {:else}
-      <div class="table-wrap">
-        <table class="tabla">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Nombre</th>
-              <th>Ubicación</th>
-              <th>Tipo</th>
-              <th>Descripción</th>
-            </tr>
-          </thead>
-          <tbody>
-            {#each lugares as l}
+      {#if loading.lugares}
+        <div class="loading-bar"></div>
+      {:else if error.lugares}
+        <p class="message error-msg">{error.lugares}</p>
+      {:else if lugares.length === 0}
+        <p class="message subtext">No hay lugares turísticos para mostrar.</p>
+      {:else}
+        <div class="table-wrap">
+          <table class="tabla">
+            <thead>
               <tr>
-                <td>{l.id ?? l._id ?? "-"}</td>
-                <td>{l.nombre ?? l.name ?? "-"}</td>
-                <td>{l.ubicacion ?? l.location ?? "-"}</td>
-                <td>{l.tipo ?? l.type ?? "-"}</td>
-                <td class="td-desc">{l.descripcion ?? l.description ?? "-"}</td>
+                <th>Nombre</th>
+                <th>Tipo</th>
+                <th>Ubicación</th>
+                <th class="td-desc-header">Descripción</th>
               </tr>
-            {/each}
-          </tbody>
-        </table>
-      </div>
-    {/if}
-  </div>
+            </thead>
+            <tbody>
+              {#each lugares as l}
+                <tr>
+                  <td data-label="Nombre">{l.nombre ?? l.name ?? "-"}</td>
+                  <td data-label="Tipo">{l.tipo ?? l.type ?? "-"}</td>
+                  <td data-label="Ubicación"
+                    >{l.ubicacion ?? l.location ?? "-"}</td
+                  >
+                  <td data-label="Descripción" class="td-desc"
+                    >{l.descripcion ?? l.description ?? "-"}</td
+                  >
+                </tr>
+              {/each}
+            </tbody>
+          </table>
+        </div>
+      {/if}
+    </div>
 
-  <!-- SERVICIOS -->
-  <div class="card">
-    <h2 class="card-title">Servicios</h2>
+    <!-- SERVICIOS -->
+    <div class="card">
+      <h2 class="card-title">Servicios</h2>
 
-    {#if loading.servicios}
-      <p class="subtext">Cargando servicios...</p>
-    {:else if error.servicios}
-      <p class="error">{error.servicios}</p>
-    {:else if servicios.length === 0}
-      <p class="subtext">No hay servicios para mostrar.</p>
-    {:else}
-      <div class="table-wrap">
-        <table class="tabla">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Nombre</th>
-              <th>Categoría</th>
-              <th>Teléfono / Contacto</th>
-              <th>Descripción</th>
-            </tr>
-          </thead>
-          <tbody>
-            {#each servicios as s}
+      {#if loading.servicios}
+        <div class="loading-bar"></div>
+      {:else if error.servicios}
+        <p class="message error-msg">{error.servicios}</p>
+      {:else if servicios.length === 0}
+        <p class="message subtext">No hay servicios disponibles.</p>
+      {:else}
+        <div class="table-wrap">
+          <table class="tabla">
+            <thead>
               <tr>
-                <td>{s.id ?? s._id ?? "-"}</td>
-                <td>{s.nombre ?? s.name ?? "-"}</td>
-                <td>{s.categoria ?? s.category ?? "-"}</td>
-                <td>{s.contacto ?? s.phone ?? "-"}</td>
-                <td class="td-desc">{s.descripcion ?? s.description ?? "-"}</td>
+                <th>Nombre</th>
+                <th>Categoría</th>
+                <th>Contacto</th>
+                <th class="td-desc-header">Descripción</th>
               </tr>
-            {/each}
-          </tbody>
-        </table>
-      </div>
-    {/if}
+            </thead>
+            <tbody>
+              {#each servicios as s}
+                <tr>
+                  <td data-label="Nombre">{s.nombre ?? s.name ?? "-"}</td>
+                  <td data-label="Categoría"
+                    >{s.categoria ?? s.category ?? "-"}</td
+                  >
+                  <td data-label="Contacto">{s.contacto ?? s.phone ?? "-"}</td>
+                  <td data-label="Descripción" class="td-desc"
+                    >{s.descripcion ?? s.description ?? "-"}</td
+                  >
+                </tr>
+              {/each}
+            </tbody>
+          </table>
+        </div>
+      {/if}
+    </div>
   </div>
 </section>
 
 <Footer />
 
 <style>
-  .main {
-    min-height: calc(100vh - 160px);
-    padding: 36px 20px;
-    background: #000;
-    color: white;
+  /* Variables de Color (CSS Puro) - Mismo estilo que Reservas/Perfil */
+  :root {
+    --color-dark: #1f2937; /* Fondo de la página principal */
+    --color-card: #0f172a; /* Fondo de las tarjetas */
+    --color-primary: #1e3a8a; /* Azul Principal */
+    --color-secondary: #fcd34d; /* Amarillo/Naranja de Resalte */
+    --color-text-light: #e2e8f0;
+    --color-error: #ef4444;
+    --color-success: #10b981;
+    --color-neutral: #9ca3af;
   }
 
+  /* ---------------------------------- */
+  /* LAYOUT PRINCIPAL */
+  /* ---------------------------------- */
+  .main {
+    background: var(--color-dark);
+    min-height: calc(100vh - 160px);
+    padding: 30px 20px;
+    color: var(--color-text-light);
+    font-family: Arial, sans-serif;
+  }
+  .main-content {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
   .page-title {
     text-align: center;
-    font-size: 2.2rem;
-    color: orange;
-    margin-bottom: 22px;
+    color: var(--color-secondary);
+    margin-bottom: 10px;
+    font-size: 2.4rem;
+    font-weight: bold;
+  }
+  .intro-text {
+    text-align: center;
+    color: var(--color-neutral);
+    margin-bottom: 30px;
+    font-size: 1rem;
   }
 
+  /* ---------------------------------- */
+  /* CARDS Y MENSAJES */
+  /* ---------------------------------- */
   .card {
-    background: rgba(255,165,0,0.04);
-    border: 2px solid orange;
-    padding: 18px;
-    border-radius: 10px;
-    box-shadow: 0 0 12px rgba(255,165,0,0.06);
-    margin: 18px auto;
-    width: 95%;
-    max-width: 1100px;
+    background: var(--color-card);
+    padding: 25px;
+    margin-bottom: 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    border-top: 5px solid var(--color-primary);
   }
-
   .card-title {
-    color: orange;
-    font-size: 1.25rem;
-    margin-bottom: 12px;
+    color: var(--color-primary);
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 10px;
   }
-
+  .message {
+    padding: 10px 0;
+    font-weight: 500;
+  }
+  .error-msg {
+    color: var(--color-error);
+  }
   .subtext {
-    color: #ccc;
-    margin: 12px 0;
+    color: var(--color-neutral);
   }
 
-  .error {
-    color: #ff6b6b;
-    font-weight: 700;
-    margin: 12px 0;
+  /* Loading State */
+  .loading-bar {
+    height: 4px;
+    width: 100%;
+    background: #374151;
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .loading-bar:before {
+    content: "";
+    display: block;
+    height: 100%;
+    width: 50%;
+    background: var(--color-secondary);
+    animation: loading-animate 1.5s infinite linear;
+  }
+  @keyframes loading-animate {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(200%);
+    }
   }
 
+  /* ---------------------------------- */
+  /* TABLAS (Misma Estructura Responsiva que Reservas) */
+  /* ---------------------------------- */
   .table-wrap {
     overflow-x: auto;
-    margin-top: 10px;
+    width: 100%;
   }
-
   .tabla {
     width: 100%;
-    border-collapse: collapse;
-    background: #0f0f0f;
-    color: #ddd;
+    min-width: 600px;
+    border-collapse: separate;
+    border-spacing: 0 10px; /* Espacio entre filas */
+    color: var(--color-text-light);
   }
-
-  .tabla thead th {
-    padding: 12px 10px;
-    background: rgba(255,165,0,0.2);
-    color: black;
+  .tabla thead tr {
+    background: #2d3748;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .tabla th,
+  .tabla td {
+    padding: 12px 15px;
     text-align: left;
-    font-weight: 700;
-    position: sticky;
-    top: 0;
-    z-index: 1;
+    border: none;
+  }
+  .tabla tbody tr {
+    background: #253141;
+    border-radius: 8px;
+    transition: background 0.2s;
+  }
+  .tabla tbody tr:hover {
+    background: #2d3748;
   }
 
-  .tabla th, .tabla td {
-    border-bottom: 1px solid rgba(255,165,0,0.08);
-    padding: 10px;
-    vertical-align: top;
+  /* Estilo para la columna de descripción */
+  .td-desc-header {
+    width: 30%; /* Ocupa más espacio para la descripción */
   }
-
   .td-desc {
-    max-width: 40ch;
+    max-width: 250px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
 
-  tr:hover td {
-    background: rgba(255,165,0,0.03);
-  }
-
-  /* Responsive tweaks */
-  @media (max-width: 800px) {
-    .card {
-      padding: 14px;
+  /* ---------------------------------- */
+  /* RESPONSIVIDAD (Media Queries para Móvil) */
+  /* ---------------------------------- */
+  @media (max-width: 768px) {
+    .main {
+      padding: 15px;
     }
     .page-title {
-      font-size: 1.8rem;
+      font-size: 2rem;
     }
-    .tabla thead th {
-      font-size: 0.95rem;
+    .card {
+      padding: 15px;
     }
-    .tabla th, .tabla td {
-      padding: 8px;
-      font-size: 0.95rem;
+
+    /* Ocultar el ID en móvil si es irrelevante para la vista compacta,
+       pero lo mantendremos para evitar cambios en la estructura de datos
+       que no se ve en el código original. Aquí se han quitado los IDs
+       innecesarios en la vista principal para simplificar la tabla. */
+
+    /* TABLA: Modo Responsivo (Tarjetas por Fila) */
+    .tabla {
+      min-width: 100%;
+      display: block;
+    }
+    .tabla thead {
+      display: none; /* Oculta el encabezado en móvil */
+    }
+    .tabla tbody,
+    .tabla tr {
+      display: block;
+    }
+    .tabla tr {
+      margin-bottom: 15px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+    }
+
+    .tabla td {
+      display: block;
+      text-align: right;
+      padding-left: 50%;
+      position: relative;
+    }
+
+    .tabla td:before {
+      /* Muestra la etiqueta del encabezado (th) */
+      content: attr(data-label);
+      position: absolute;
+      left: 10px;
+      width: 45%;
+      padding-right: 10px;
+      white-space: nowrap;
+      text-align: left;
+      font-weight: 600;
+      color: var(--color-secondary);
+    }
+
+    /* La descripción debe poder envolver texto */
+    .td-desc {
+      white-space: normal;
+      overflow: visible;
+      text-overflow: clip;
+      max-width: 100%; /* Asegura que la celda usa todo el ancho disponible */
+    }
+    .td-desc:before {
+      /* Asegura que la etiqueta de descripción esté visible */
+      line-height: 1.5;
+      top: 10px;
     }
   }
 </style>

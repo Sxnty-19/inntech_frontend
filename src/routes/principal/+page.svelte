@@ -2,12 +2,14 @@
   import Navbar from "$lib/components/Navbar.svelte";
   import NavbarA from "$lib/components/NavbarA.svelte";
   import Footer from "$lib/components/Footer.svelte";
+  // Importante: La lógica de carga aquí no es reactiva, solo se ejecuta una vez.
 
   let user = null;
-  let fullName = "";
+  let fullName = "Usuario"; // Valor por defecto seguro
   let rol = "";
 
   // Obtener info del LocalStorage
+  // Usamos el check de 'typeof localStorage' para el renderizado inicial en el servidor (SSR)
   if (typeof localStorage !== "undefined") {
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
@@ -26,6 +28,10 @@
       rol = user.rol;
     }
   }
+
+  // Fallback seguro: Si no se encontró el nombre completo, usamos el username
+  const displayName =
+    fullName && fullName !== "" ? fullName : (user?.username ?? "Invitado");
 </script>
 
 <!-- Las barras de navegación (sticky) se quedan arriba -->
@@ -33,17 +39,30 @@
 <NavbarA />
 
 <section class="main-content">
-  <div class="welcome-box">
-    <h2 class="title">
-      ¡Bienvenido(a)! <br /><span class="highlight">{user.username}</span>
-    </h2>
-    <div class="tip-box">
+  <!-- FIX CLAVE: Envuelve el contenido que usa 'user' en un bloque {#if user} -->
+  {#if user}
+    <div class="welcome-box">
+      <h2 class="title">
+        ¡Bienvenido(a)! <br /><span class="highlight">{displayName}</span>
+      </h2>
+      <div class="tip-box">
+        <p>
+          Utiliza la barra de "Módulos" (arriba) para navegar a las distintas
+          secciones de gestión. Tu rol actual es: <strong>{rol}</strong>.
+        </p>
+      </div>
+    </div>
+  {:else}
+    <!-- Si no hay usuario logueado (solo en caso de error o logout), muestra un mensaje alternativo -->
+    <div class="no-user-message">
+      <h2 class="title">Cargando...</h2>
       <p>
-        Utiliza la barra de "Módulos" (arriba) para navegar a las distintas
-        secciones de gestión.
+        Si esto tarda, por favor, <a href="/login" class="login-link"
+          >inicia sesión</a
+        >.
       </p>
     </div>
-  </div>
+  {/if}
 </section>
 
 <Footer />
@@ -139,5 +158,13 @@
   .highlight {
     color: white;
     font-weight: 800;
+  }
+
+  .no-user-message {
+    color: var(--color-text);
+  }
+  .login-link {
+    color: var(--color-secondary);
+    text-decoration: underline;
   }
 </style>
