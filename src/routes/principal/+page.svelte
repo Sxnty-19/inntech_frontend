@@ -1,7 +1,7 @@
 <script>
   import Navbar from "$lib/components/Navbar.svelte";
+  import NavbarA from "$lib/components/NavbarA.svelte";
   import Footer from "$lib/components/Footer.svelte";
-    import NavbarA from "$lib/components/NavbarA.svelte";
 
   let user = null;
   let fullName = "";
@@ -13,74 +13,131 @@
     if (storedUser) {
       user = JSON.parse(storedUser);
 
+      // Lógica limpia para construir el nombre completo
       fullName = `
         ${user.primer_nombre}
         ${user.segundo_nombre ?? ""}
         ${user.primer_apellido}
         ${user.segundo_apellido ?? ""}
-      `.replace(/\s+/g, " ").trim();
+      `
+        .replace(/\s+/g, " ")
+        .trim();
 
       rol = user.rol;
     }
   }
 </script>
 
+<!-- Las barras de navegación (sticky) se quedan arriba -->
 <Navbar />
 <NavbarA />
 
-<section class="main">
+<section class="main-content">
   <div class="welcome-box">
-    <h2 class="title">Bienvenido <span class="highlight">{fullName}</span></h2>
-    <p class="role">Rol: <strong>{rol}</strong></p>
+    <h2 class="title">
+      ¡Bienvenido(a)! <br /><span class="highlight">{user.username}</span>
+    </h2>
+    <div class="tip-box">
+      <p>
+        Utiliza la barra de "Módulos" (arriba) para navegar a las distintas
+        secciones de gestión.
+      </p>
+    </div>
   </div>
-
 </section>
 
 <Footer />
 
 <style>
-  .main {
-    min-height: calc(100vh - 160px);
+  /* ============================================== */
+  /* Variables de color para coherencia */
+  /* ============================================== */
+  :root {
+    --color-dark: #0f172a; /* Color para Navbars y Footer */
+    --color-body-bg: #1a202c; /* Color de fondo del contenido principal */
+    --color-secondary: #fcd34d;
+    --color-primary: #1e3a8a;
+    --color-text: #e2e8f0;
+  }
+
+  /* ============================================== */
+  /* FIX GLOBAL AGRESIVO: CUBRE EL 100% DEL VIEWPORT */
+  /* ============================================== */
+  :global(html) {
+    /* Mantiene el fondo oscuro en el nivel más alto (la ventana) */
+    background: var(--color-dark);
+    box-sizing: border-box;
+    /* Asegura que el elemento raíz ocupe todo el espacio */
+    width: 100%;
+    height: 100%;
+    /* FIX DE SCROLL HORIZONTAL */
+    overflow-x: hidden;
+  }
+
+  :global(body) {
+    /* Reset total de márgenes y paddings por defecto del navegador */
+    margin: 0;
+    padding: 0;
+    /* Asegura que el body se estire para cubrir la altura del viewport */
+    min-height: 100vh;
+    width: 100%;
+    /* Evita el scroll horizontal causado por elementos que exceden el ancho */
+    overflow-x: hidden;
+    /* FIX CLAVE: Definir la fuente principal para todo el cuerpo */
+    font-family: "Inter", sans-serif;
+  }
+
+  /* Aplica el fondo ligeramente más claro para el contenido principal */
+  .main-content {
+    /* AJUSTE CLAVE en la altura mínima para cubrir el espacio entre Navbars y Footer */
+    min-height: calc(100vh - 110px);
+    flex-grow: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     padding: 50px 20px;
-    background: #000;
+    background: var(
+      --color-body-bg
+    ); /* CAMBIO CLAVE: Fondo ligeramente más claro */
     color: white;
     text-align: center;
+    /* La fuente se hereda ahora del body, pero la mantenemos por redundancia */
+    /* font-family: "Inter", sans-serif; */
   }
 
   .welcome-box {
-    margin-bottom: 30px;
-    background: rgba(255, 165, 0, 0.1);
-    padding: 25px 35px;
+    margin: 30px;
+    background: rgba(30, 58, 138, 0.2);
+    padding: 30px 40px;
     border-radius: 12px;
-    border: 2px solid orange;
-    box-shadow: 0 0 12px rgba(255, 165, 0, 0.3);
+    border: 2px solid var(--color-secondary);
+    box-shadow:
+      0 4px 20px rgba(0, 0, 0, 0.5),
+      0 0 15px var(--color-secondary);
+    max-width: 500px;
+    width: 90%;
+  }
+
+  .tip-box {
+    margin-top: 20px;
+    padding: 10px;
+    background: rgba(252, 211, 77, 0.1);
+    border-left: 4px solid var(--color-secondary);
+    color: var(--color-text);
+    font-size: 0.9rem;
+    text-align: left;
+    border-radius: 0 4px 4px 0;
   }
 
   .title {
-    font-size: 2.2rem;
-    color: orange;
-    margin-bottom: 10px;
+    font-size: clamp(1.8rem, 4vw, 2.5rem);
+    color: var(--color-secondary);
+    margin-bottom: 5px;
   }
 
   .highlight {
     color: white;
-    font-weight: 700;
-  }
-
-  .role {
-    font-size: 1.2rem;
-    margin-top: 5px;
-    color: #ccc;
-  }
-
-  .hero-img {
-    max-width: 750px;
-    width: 90%;
-    border-radius: 10px;
-    border: 2px solid orange;
+    font-weight: 800;
   }
 </style>

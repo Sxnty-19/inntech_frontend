@@ -103,7 +103,7 @@
         .social-icon i {
             font-style: normal;
             line-height: 1;
-            color: var(--color-light);
+            color: var(--color-dark);
         }
 
         .footer-bottom {

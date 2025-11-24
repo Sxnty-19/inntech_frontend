@@ -1,5 +1,5 @@
 <script>
-  import { goto } from '$app/navigation';
+  import { goto } from "$app/navigation";
 
   let user = null;
   let fullName = "";
@@ -10,129 +10,311 @@
     if (storedUser) {
       user = JSON.parse(storedUser);
 
+      // Lógica limpia para construir el nombre completo
       fullName = `
         ${user.primer_nombre}
         ${user.segundo_nombre ?? ""}
         ${user.primer_apellido}
         ${user.segundo_apellido ?? ""}
-      `.replace(/\s+/g, " ").trim();
+      `
+        .replace(/\s+/g, " ")
+        .trim();
     }
   }
 
   function cerrarSesion() {
+    // Limpia el almacenamiento y redirige al login
     localStorage.clear();
-    goto('/login', { replaceState: true });
+    goto("/login", { replaceState: true });
   }
 
   function editarPerfil() {
-    goto('/perfil');
+    goto("/perfil");
   }
 
   function irPrincipal() {
-    goto('/principal');
+    goto("/principal");
   }
 
   // Manejar "Enter" para accesibilidad
   function handleKeyDown(event) {
-    if (event.key === 'Enter' || event.key === ' ') {
+    if (event.key === "Enter" || event.key === " ") {
       irPrincipal();
     }
   }
 </script>
 
 <nav class="navbar">
-  <!-- CORRECCIÓN: unir las clases en un solo atributo y añadir tabindex/role para accesibilidad -->
-  <div class="nav-left clickable" on:click={irPrincipal} role="button" tabindex="0" on:keydown={handleKeyDown}>
-    <img src="/logo.png" alt="logo" class="logo" />
-    <h1 class="brand">Hotel InnTech</h1>
+  <div
+    class="nav-left clickable"
+    on:click={irPrincipal}
+    role="button"
+    tabindex="0"
+    on:keydown={handleKeyDown}
+  >
+    <!-- NOTA: Asegúrate de que /logo.png sea accesible o usa un SVG inline -->
+    <img src="/logo.png" alt="Logo de Hotel InnTech" class="logo" />
+    <!-- Marca actualizada a la versión del usuario -->
+    <h1 class="brand">Hotel Santadereano Del Sur</h1>
   </div>
 
   <div class="nav-right">
     {#if fullName}
-      <span class="user-name">{fullName}</span>
+      <!-- Se oculta en el modo móvil por CSS -->
+      <span class="user-name desktop-only">{fullName}</span>
     {/if}
 
-    <button class="nav-btn" on:click={editarPerfil}>Editar perfil</button>
-    <button class="nav-btn logout" on:click={cerrarSesion}>Cerrar sesión</button>
+    <button class="nav-btn" on:click={editarPerfil}>
+      <span class="desktop-text">Editar perfil</span>
+      <!-- FIX: Aseguramos el texto corto para móvil -->
+      <span class="mobile-text">Perfil</span>
+    </button>
+    <button class="nav-btn logout" on:click={cerrarSesion}>
+      <span class="desktop-text">Cerrar sesión</span>
+      <span class="mobile-text">Salir</span>
+    </button>
   </div>
 </nav>
 
 <style>
+  /* ---------------------------------- */
+  /* VARIABLES DE DISEÑO (COHERENCIA) */
+  /* ---------------------------------- */
+  :root {
+    --color-primary: #1e3a8a; /* Azul oscuro elegante */
+    --color-secondary: #fcd34d; /* Amarillo/Naranja sutil */
+    --color-dark: #0f172a; /* Fondo muy oscuro */
+    --color-text: #e2e8f0; /* Gris claro para el texto */
+    --color-danger: #ef4444; /* Rojo para cerrar sesión */
+    --shadow-subtle: 0 2px 10px rgba(0, 0, 0, 0.3);
+  }
+
+  /* ---------------------------------- */
+  /* NAVBAR PRINCIPAL */
+  /* ---------------------------------- */
   .navbar {
+    box-sizing: border-box;
     width: 100%;
-    padding: 12px 25px;
-    background: #111827;
-    color: white;
+    background: var(--color-dark);
+    padding: 15px 40px; /* Aumento del padding para más espacio */
+    color: var(--color-text);
     display: flex;
     align-items: center;
     justify-content: space-between;
-    border-bottom: 1px solid rgba(255,255,255,0.1);
+    border-bottom: 1px solid var(--color-primary);
+    box-shadow: var(--shadow-subtle);
+    position: sticky; /* Se mantiene visible al hacer scroll */
+    top: 0;
+    z-index: 50;
+    font-family: "Inter", sans-serif;
   }
 
+  /* FIX GLOBAL PARA ELIMINAR EL SCROLL HORIZONTAL */
+  /* Esto ya debería estar en el contenedor principal de la página, pero lo incluimos por seguridad si se usa este componente como principal */
+  :global(html),
+  :global(body) {
+    overflow-x: hidden;
+    width: 100%;
+  }
+
+  /* Ocultar texto móvil por defecto */
+  .mobile-text {
+    display: none;
+  }
+
+  /* ---------------------------------- */
+  /* IZQUIERDA: LOGO Y MARCA */
+  /* ---------------------------------- */
   .nav-left {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 15px;
     cursor: pointer;
+    transition: opacity 0.3s;
+    /* FIX CLAVE: Permitir que el nav-left ocupe el espacio restante sin forzar el desborde */
+    flex-grow: 1;
+    /* Asegura que el contenido (incluyendo la marca) se pueda comprimir */
+    min-width: 0;
   }
 
-  /* clase adicional opcional */
+  .nav-left:hover {
+    opacity: 0.9;
+  }
+
+  /* Mejora de accesibilidad para focus */
+  .clickable {
+    border-radius: 4px;
+  }
   .clickable:focus {
-    outline: 2px solid #ffbf47;
-    outline-offset: 2px;
-  }
-
-  .nav-left:hover .brand {
-    color: #ffbf47;
+    outline: 2px solid var(--color-secondary);
+    outline-offset: 4px;
   }
 
   .logo {
-    width: 40px;
-    height: 40px;
+    width: 35px;
+    height: 35px;
+    flex-shrink: 0; /* El logo NUNCA se encoge */
   }
 
   .brand {
-    font-size: 1.3rem;
-    font-weight: 700;
-    color: orange;
-    transition: 0.2s;
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--color-secondary);
+    transition: color 0.3s ease;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+
+    /* FIX CLAVE para PC/Desktop: Truncar el texto si es necesario */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    /* Permite que el elemento se encoja si es necesario para dar espacio a los botones */
+    min-width: 0;
   }
 
+  /* ---------------------------------- */
+  /* DERECHA: USUARIO Y BOTONES */
+  /* ---------------------------------- */
   .nav-right {
     display: flex;
     align-items: center;
-    gap: 15px;
+    gap: 20px;
+    /* FIX CLAVE: Asegura que el nav-right tenga prioridad y NUNCA se encoja */
+    flex-shrink: 0;
   }
 
   .user-name {
-    margin-right: 10px;
     font-weight: 600;
-    color: orange;
-    font-size: 1rem;
+    color: var(--color-text);
+    font-size: 0.95rem;
+    padding: 5px 0;
+    /* Resaltar el nombre con una línea de división */
+    border-right: 2px solid var(--color-secondary);
+    padding-right: 20px;
+    margin-right: -5px;
   }
 
+  /* Estilo base para botones */
   .nav-btn {
-    background: transparent;
-    border: 1px solid orange;
-    padding: 6px 12px;
-    border-radius: 6px;
-    color: orange;
+    padding: 8px 16px;
+    border-radius: 9999px; /* Estilo 'pill' */
+    font-size: 0.9rem;
+    font-weight: 600;
     cursor: pointer;
-    transition: .2s;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    background: transparent;
+    border: 1px solid var(--color-secondary);
+    color: var(--color-secondary);
+    flex-shrink: 0; /* IMPEDIR que el botón se encoja */
   }
 
   .nav-btn:hover {
-    background: orange;
-    color: black;
+    background: var(--color-secondary);
+    color: var(--color-dark);
+    box-shadow: 0 4px 8px rgba(252, 211, 77, 0.3);
+    transform: translateY(-1px);
   }
 
+  /* Estilo para el botón de 'Cerrar Sesión' (Logout) */
   .logout {
-    border-color: #ff4d4d;
-    color: #ff4d4d;
+    border: 1px solid var(--color-danger);
+    color: var(--color-danger);
   }
 
   .logout:hover {
-    background: #ff4d4d;
+    background: var(--color-danger);
     color: white;
+    border-color: var(--color-danger);
+    box-shadow: 0 4px 8px rgba(239, 68, 68, 0.4);
+  }
+
+  /* Deshabilitar estado */
+  .nav-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+
+  /* ---------------------------------- */
+  /* RESPONSIVIDAD (Móvil/Tableta) */
+  /* ---------------------------------- */
+  @media (max-width: 768px) {
+    /* Ocultar el texto largo y el nombre completo */
+    .desktop-text,
+    .desktop-only {
+      display: none;
+    }
+    /* Mostrar el texto corto */
+    .mobile-text {
+      display: inline;
+    }
+
+    .navbar {
+      padding: 10px 18px;
+    }
+
+    .brand {
+      font-size: 1.3rem;
+    }
+
+    .nav-right {
+      gap: 4px; /* AJUSTE CLAVE: Reducción MÁXIMA del espacio entre botones (4px) */
+    }
+
+    .user-name {
+      display: none;
+    }
+
+    .nav-btn {
+      padding: 6px 10px;
+      font-size: 0.8rem;
+    }
+  }
+
+  @media (max-width: 420px) {
+    /* Breakpoint para celulares muy pequeños */
+    .navbar {
+      padding: 10px 8px; /* Reducción extrema del padding lateral */
+    }
+
+    .brand {
+      font-size: 0.9rem;
+      font-weight: 700;
+      max-width: 150px;
+    }
+
+    .nav-left {
+      gap: 5px;
+    }
+
+    .logo {
+      width: 25px;
+      height: 25px;
+    }
+
+    .nav-btn {
+      /* AJUSTE MÁS AGRESIVO: Reducción del padding horizontal para reducir el ancho del botón (8px -> 6px) */
+      padding: 6px 6px;
+    }
+  }
+
+  @media (max-width: 360px) {
+    /* FIX FINAL: Para los móviles más pequeños (iPhone SE 1st Gen, etc.) */
+    .brand {
+      /* Ocultamos la marca para darle prioridad total a los botones */
+      display: none;
+    }
+
+    .nav-left {
+      /* Eliminamos el gap si la marca desaparece, solo queda el logo */
+      gap: 0;
+    }
+
+    .navbar {
+      /* AJUSTE MÁS AGRESIVO: Aumentamos el padding lateral para darle más aire al botón de la derecha (6px -> 10px) */
+      padding: 10px 10px;
+    }
   }
 </style>
