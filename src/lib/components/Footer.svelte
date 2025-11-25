@@ -11,12 +11,12 @@
         :root {
             --color-primary: #1e3a8a;
             --color-secondary: #fcd34d;
-            --color-dark: #0f172a;
+            --color-mid-dark: #0f172a;
             --color-text: #e2e8f0;
         }
 
         footer {
-            background: var(--color-dark);
+            background: var(--color-mid-dark);
             color: var(--color-text);
             padding-top: 60px;
             padding-bottom: 20px;

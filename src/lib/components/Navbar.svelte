@@ -83,8 +83,7 @@
   :root {
     --color-primary: #1e3a8a; /* Azul oscuro elegante */
     --color-secondary: #fcd34d; /* Amarillo/Naranja sutil */
-    --color-dark: #0f172a; /* Fondo muy oscuro */
-    --color-text: #e2e8f0; /* Gris claro para el texto */
+    --color-mid-dark: #0f172a; /* Gris oscuro (Fondo de esta barra) */
     --color-danger: #ef4444; /* Rojo para cerrar sesión */
     --shadow-subtle: 0 2px 10px rgba(0, 0, 0, 0.3);
   }
@@ -95,13 +94,12 @@
   .navbar {
     box-sizing: border-box;
     width: 100%;
-    background: var(--color-dark);
+    background: var(--color-mid-dark);
     padding: 15px 40px; /* Aumento del padding para más espacio */
     color: var(--color-text);
     display: flex;
     align-items: center;
     justify-content: space-between;
-    border-bottom: 1px solid var(--color-primary);
     box-shadow: var(--shadow-subtle);
     position: sticky; /* Se mantiene visible al hacer scroll */
     top: 0;
@@ -115,6 +113,7 @@
   :global(body) {
     overflow-x: hidden;
     width: 100%;
+    box-sizing: border-box;
   }
 
   /* Ocultar texto móvil por defecto */

@@ -5,6 +5,7 @@
     // Variables de estado
     let modulos = [];
     let error = "";
+    // Estado de carga mejorado
     let isLoading = true;
     let isMenuOpen = false; // Estado para controlar si el menú desplegable está abierto
 
@@ -77,14 +78,10 @@
     }
 </script>
 
-<!--
-  La clase 'open' solo se usa en móvil para el menú desplegable.
-  En desktop, el contenido siempre es visible en línea.
--->
 <nav class="mod-nav">
     <div class="nav-wrapper">
         <!-- Botón de Toggle visible solo en móvil -->
-        {#if modulos.length > 0}
+        {#if modulos.length > 0 && !isLoading}
             <button
                 class="menu-toggle-btn"
                 on:click={toggleMenu}
@@ -99,13 +96,9 @@
         {#if error}
             <p class="error">{error}</p>
         {:else if isLoading}
-            <div class="loading-indicator">
-                <!-- Reemplazo de Font Awesome con un spinner SVG simple por robustez -->
-                <svg class="spinner" viewBox="0 0 50 50">
-                    <circle cx="25" cy="25" r="20" fill="none" stroke-width="5"
-                    ></circle>
-                </svg>
-                <p>Cargando módulos...</p>
+            <!-- SOLO ANIMACIÓN: Usamos un contenedor simplificado para solo mostrar la barra. -->
+            <div class="loading-container-bar">
+                <div class="loading-bar"></div>
             </div>
         {:else if modulos.length > 0}
             <!-- Contenedor de botones. En móvil, se convierte en el menú desplegable. -->
@@ -143,9 +136,10 @@
     :root {
         --color-primary: #1e3a8a; /* Azul oscuro elegante */
         --color-secondary: #fcd34d; /* Amarillo/Naranja sutil */
-        --color-mid-dark: #1f2937; /* Gris oscuro (Fondo de esta barra) */
+        --color-mid-dark: #0f172a; /* Gris oscuro (Fondo de esta barra) */
         --color-text: #e2e8f0;
         --color-danger: #ef4444;
+        --color-bg-light: #1a202c; /* Fondo para la barra de carga */
     }
 
     /* ---------------------------------- */
@@ -154,7 +148,6 @@
     .mod-nav {
         width: 100%;
         background: var(--color-mid-dark);
-        border-bottom: 2px solid var(--color-primary);
         padding: 8px 40px;
         display: flex;
         align-items: center;
@@ -165,15 +158,13 @@
             0 4px 6px -1px rgba(0, 0, 0, 0.1),
             0 2px 4px -2px rgba(0, 0, 0, 0.1);
         font-family: "Inter", sans-serif;
-        /* FIX CLAVE: Asegurar que el padding no cause desbordamiento */
         box-sizing: border-box;
-        /* FIX CLAVE: Ocultar cualquier elemento que se desborde internamente */
         overflow-x: hidden;
     }
 
     .nav-wrapper {
         width: 100%;
-        max-width: 1400px; /* Limite el ancho en pantallas ultra anchas */
+        max-width: 1400px;
         margin: 0 auto;
         display: flex;
         align-items: center;
@@ -182,30 +173,80 @@
     }
 
     /* ---------------------------------- */
+    /* Indicador de Carga (Solo Barra de Progreso) */
+    /* ---------------------------------- */
+    .loading-container-bar {
+        width: 100%;
+        display: flex;
+        justify-content: center; /* Centrar la barra */
+        padding: 5px 0; /* Espacio para que no se pegue */
+    }
+
+    .loading-bar {
+        width: 80%; /* Ancho de la barra de progreso */
+        height: 3px;
+        background: var(--color-bg-light); /* Fondo estático */
+        border-radius: 5px;
+        overflow: hidden;
+    }
+
+    .loading-bar::before {
+        content: "";
+        display: block;
+        height: 100%;
+        width: 30%; /* Tamaño visible de la barra animada */
+        background: linear-gradient(
+            90deg,
+            var(--color-primary),
+            var(--color-secondary)
+        );
+        animation: loading-move 1.5s infinite linear;
+    }
+
+    @keyframes loading-move {
+        0% {
+            transform: translateX(-100%);
+        }
+        100% {
+            transform: translateX(
+                333%
+            ); /* 100% + 2 veces el ancho para salir */
+        }
+    }
+
+    /* ---------------------------------- */
     /* Contenedor de botones (Lista de Módulos) - Desktop & Móvil Base */
     /* ---------------------------------- */
     .mod-buttons-container {
         display: flex;
-        /* En desktop, este contenedor controla la visibilidad y centrado */
         width: 100%;
         justify-content: center;
     }
 
-    /* Contenedor interno para manejar el scroll horizontal en DESKTOP */
+    /* Contenedor interno para manejar el scroll horizontal en DESKTOP (CLAVE) */
     .mod-scroll-container {
         display: flex;
         gap: 10px;
         /* Esto es CRUCIAL para el scroll horizontal en DESKTOP */
         overflow-x: auto;
-        padding-bottom: 5px;
+        padding-bottom: 5px; /* Espacio para el scrollbar */
         justify-content: flex-start;
-        /* Ocultar scrollbar en navegadores WebKit (Chrome, Safari) */
-        scrollbar-width: none; /* Firefox */
-        -ms-overflow-style: none; /* IE/Edge */
-    }
+        /* Asegura que los botones se mantengan en una línea horizontal */
+        flex-wrap: nowrap;
 
+        scrollbar-width: thin; /* Firefox */
+        scrollbar-color: var(--color-primary) var(--color-mid-dark);
+    }
+    /* Ocultar scrollbar en navegadores WebKit (Chrome, Safari) */
     .mod-scroll-container::-webkit-scrollbar {
-        display: none; /* WebKit */
+        height: 6px;
+    }
+    .mod-scroll-container::-webkit-scrollbar-thumb {
+        background: var(--color-primary);
+        border-radius: 3px;
+    }
+    .mod-scroll-container::-webkit-scrollbar-track {
+        background: var(--color-mid-dark);
     }
 
     /* Botones de Módulo (simulando pestañas) */
@@ -242,8 +283,7 @@
     /* INDICADORES DE ESTADO */
     /* ---------------------------------- */
     .error,
-    .empty-message,
-    .loading-indicator {
+    .empty-message {
         width: 100%;
         text-align: center;
         padding: 5px 0;
@@ -254,29 +294,6 @@
     .error {
         color: var(--color-danger);
         font-weight: 600;
-    }
-    .loading-indicator {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        justify-content: center;
-    }
-
-    .spinner {
-        animation: spin 1.2s linear infinite;
-        height: 18px;
-        width: 18px;
-        stroke: var(--color-secondary);
-        stroke-linecap: round;
-    }
-
-    @keyframes spin {
-        0% {
-            transform: rotate(0deg);
-        }
-        100% {
-            transform: rotate(360deg);
-        }
     }
 
     /* ---------------------------------- */
@@ -292,7 +309,6 @@
         font-weight: 600;
         cursor: pointer;
         transition: background 0.2s;
-        gap: 8px;
         width: 100%; /* Ocupa todo el ancho en móvil */
         text-align: center;
     }
@@ -307,10 +323,10 @@
     @media (max-width: 768px) {
         .mod-nav {
             padding: 8px 15px;
-            top: 55px;
+            top: 55px; /* Ajuste si el Navbar principal es más pequeño en móvil */
         }
 
-        /* FIX CLAVE: Cambiar el contenedor principal a columna */
+        /* Cambiar el contenedor principal a columna para que el botón de toggle fluya */
         .nav-wrapper {
             flex-direction: column;
             justify-content: flex-start;
@@ -319,27 +335,14 @@
 
         .menu-toggle-btn {
             display: block;
-            width: 100%; /* El botón ocupa todo el ancho */
+            width: 100%;
             margin-bottom: 8px;
-            box-sizing: border-box; /* FIX BOX-SIZING */
+            box-sizing: border-box;
         }
 
-        /* FIX CLAVE: El contenedor del menú ahora fluye */
+        /* El contenedor de botones se convierte en un menú desplegable vertical */
         .mod-buttons-container {
-            position: static; /* Quitamos absolute para que fluya */
-            top: auto;
-            left: auto;
-            right: auto;
-            width: 100%; /* CLAVE: Ocupa el 100% del nav-wrapper */
-
-            background: var(--color-mid-dark);
-            border: 1px solid var(--color-primary);
-            z-index: 10;
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
-            border-top: none;
-            border-radius: 8px; /* Redondeamos las esquinas completamente */
-
-            /* Animación de altura */
+            width: 100%;
             max-height: 0;
             overflow: hidden;
             opacity: 0;
@@ -347,31 +350,47 @@
                 max-height 0.4s ease-out,
                 opacity 0.3s ease-out;
 
-            padding: 0;
-            box-sizing: border-box; /* FIX BOX-SIZING */
+            background: var(--color-mid-dark);
+            border-radius: 0 0 8px 8px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+            position: absolute; /* CLAVE: Posición absoluta bajo el botón de toggle */
+            top: 100%; /* Debajo del nav-wrapper (que incluye el toggle) */
+            left: 0;
+            z-index: 50;
         }
 
         .mod-buttons-container.open {
-            max-height: 500px;
+            max-height: 500px; /* Suficiente para muchos módulos */
             opacity: 1;
+            /* Agregamos un borde superior si no está debajo del botón */
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        /* El scroll container ahora se apila verticalmente y agrega el padding interno */
+        /* El scroll container ahora apila verticalmente los botones */
         .mod-scroll-container {
             flex-direction: column;
-            align-items: stretch; /* CLAVE: Estira los elementos al 100% del ancho del contenedor */
-            padding: 10px 15px; /* Agregamos el padding interno aquí */
+            align-items: stretch; /* Estira los botones al 100% del ancho */
+            padding: 10px 15px;
             overflow-x: hidden;
-            width: 100%; /* Ocupa el 100% del contenedor padre */
-            box-sizing: border-box; /* FIX BOX-SIZING */
+            width: 100%;
+            box-sizing: border-box;
         }
 
-        /* El botón se ajusta automáticamente gracias a align-items: stretch */
+        /* Ocultar scrollbar vertical si el menú es muy largo */
+        .mod-scroll-container::-webkit-scrollbar {
+            width: 0;
+            height: 0;
+        }
+
         .mod-btn {
             padding: 10px;
             text-align: left;
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
             border-radius: 4px;
+        }
+
+        .mod-btn:last-child {
+            border-bottom: none;
         }
 
         .mod-btn:hover:not([aria-current="page"]) {
@@ -380,18 +399,14 @@
             opacity: 0.8;
         }
 
-        .mod-btn[aria-current="page"] {
-            opacity: 1;
+        /* En móvil, la barra de carga debe ocupar todo el ancho */
+        .loading-bar {
+            width: 100%;
         }
-
-        /* En móvil, los indicadores se alinean a la izquierda */
-        .loading-indicator {
+        /* Eliminar estilos del antiguo loading-container para el nuevo contenedor */
+        .loading-container-bar {
+            width: 100%;
             justify-content: flex-start;
-        }
-
-        .error,
-        .empty-message {
-            text-align: left;
         }
     }
 </style>

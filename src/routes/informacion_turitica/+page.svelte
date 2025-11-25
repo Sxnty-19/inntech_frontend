@@ -11,6 +11,10 @@
   let loading = { eventos: true, lugares: true, servicios: true };
   let error = { eventos: null, lugares: null, servicios: null };
 
+  // 1. Nueva variable de estado para controlar la categoría visible
+  // Por defecto, muestra 'eventos' al cargar.
+  let currentCategory = "eventos";
+
   const API = "https://turismo-sm.onrender.com";
 
   // Función genérica para manejar la carga y reintentos
@@ -33,6 +37,7 @@
             setTimeout(resolve, Math.pow(2, i) * 1000),
           );
         } else {
+          // Si el último intento falla
           throw new Error(`Error HTTP ${res.status}. No se pudo conectar.`);
         }
       }
@@ -62,6 +67,16 @@
     cargarLugares();
     cargarServicios();
   });
+
+  /**
+   * Helper para obtener el valor de un campo, priorizando nombres en español/inglés.
+   * @param {Object} item - Objeto de datos (evento, lugar, servicio).
+   * @param {string} esKey - Clave en español (e.g., 'nombre').
+   * @param {string} enKey - Clave en inglés (e.g., 'name').
+   * @returns {string} El valor formateado o '-' si no existe.
+   */
+  const getFieldValue = (item, esKey, enKey) =>
+    item[esKey] ?? item[enKey] ?? "-";
 </script>
 
 <Navbar />
@@ -76,122 +91,158 @@
       plataforma de turismo.
     </p>
 
-    <!-- EVENTOS -->
-    <div class="card">
-      <h2 class="card-title">Eventos Destacados</h2>
+    <!-- 2. Botones de Navegación/Filtro -->
+    <div class="category-tabs">
+      <button
+        class="tab-btn"
+        class:active={currentCategory === "eventos"}
+        on:click={() => (currentCategory = "eventos")}
+      >
+        Eventos Destacados
+      </button>
+      <button
+        class="tab-btn"
+        class:active={currentCategory === "lugares"}
+        on:click={() => (currentCategory = "lugares")}
+      >
+        Lugares Turísticos
+      </button>
+      <button
+        class="tab-btn"
+        class:active={currentCategory === "servicios"}
+        on:click={() => (currentCategory = "servicios")}
+      >
+        Servicios
+      </button>
+    </div>
 
-      {#if loading.eventos}
-        <div class="loading-bar"></div>
-      {:else if error.eventos}
-        <p class="message error-msg">{error.eventos}</p>
-      {:else if eventos.length === 0}
-        <p class="message subtext">No hay eventos próximos para mostrar.</p>
-      {:else}
-        <div class="table-wrap">
-          <table class="tabla">
-            <thead>
-              <tr>
-                <th>Nombre</th>
-                <th>Fecha</th>
-                <th>Ubicación</th>
-                <th class="td-desc-header">Descripción</th>
-              </tr>
-            </thead>
-            <tbody>
+    <!-- 3. Contenedores condicionales según currentCategory -->
+    <div class="content-display">
+      <!-- EVENTOS SECTION -->
+      {#if currentCategory === "eventos"}
+        <div class="info-section">
+          <h2 class="section-title">Eventos Destacados</h2>
+
+          {#if loading.eventos}
+            <div class="loading-bar"></div>
+          {:else if error.eventos}
+            <p class="message error-msg">{error.eventos}</p>
+          {:else if eventos.length === 0}
+            <p class="message subtext">No hay eventos próximos para mostrar.</p>
+          {:else}
+            <div class="card-grid">
               {#each eventos as e}
-                <tr>
-                  <td data-label="Nombre">{e.nombre ?? e.title ?? "-"}</td>
-                  <td data-label="Fecha">{e.fecha_inicio ?? e.date ?? "-"}</td>
-                  <td data-label="Ubicación"
-                    >{e.ubicacion ?? e.location ?? "-"}</td
-                  >
-                  <td data-label="Descripción" class="td-desc"
-                    >{e.descripcion ?? e.description ?? "-"}</td
-                  >
-                </tr>
+                <div class="card event-card">
+                  <h3 class="card-name">
+                    {getFieldValue(e, "nombre", "title")}
+                  </h3>
+                  <div class="card-detail">
+                    <span class="detail-label">Fecha:</span>
+                    <span class="detail-value"
+                      >{getFieldValue(e, "fecha_inicio", "date")}</span
+                    >
+                  </div>
+                  <div class="card-detail">
+                    <span class="detail-label">Ubicación:</span>
+                    <span class="detail-value"
+                      >{getFieldValue(e, "ubicacion", "location")}</span
+                    >
+                  </div>
+                  <div class="card-description">
+                    <p class="description-text">
+                      {getFieldValue(e, "descripcion", "description")}
+                    </p>
+                  </div>
+                </div>
               {/each}
-            </tbody>
-          </table>
+            </div>
+          {/if}
         </div>
       {/if}
-    </div>
 
-    <!-- LUGARES -->
-    <div class="card">
-      <h2 class="card-title">Lugares Turísticos</h2>
+      <!-- LUGARES SECTION -->
+      {#if currentCategory === "lugares"}
+        <div class="info-section">
+          <h2 class="section-title">Lugares Turísticos</h2>
 
-      {#if loading.lugares}
-        <div class="loading-bar"></div>
-      {:else if error.lugares}
-        <p class="message error-msg">{error.lugares}</p>
-      {:else if lugares.length === 0}
-        <p class="message subtext">No hay lugares turísticos para mostrar.</p>
-      {:else}
-        <div class="table-wrap">
-          <table class="tabla">
-            <thead>
-              <tr>
-                <th>Nombre</th>
-                <th>Tipo</th>
-                <th>Ubicación</th>
-                <th class="td-desc-header">Descripción</th>
-              </tr>
-            </thead>
-            <tbody>
+          {#if loading.lugares}
+            <div class="loading-bar"></div>
+          {:else if error.lugares}
+            <p class="message error-msg">{error.lugares}</p>
+          {:else if lugares.length === 0}
+            <p class="message subtext">
+              No hay lugares turísticos para mostrar.
+            </p>
+          {:else}
+            <div class="card-grid">
               {#each lugares as l}
-                <tr>
-                  <td data-label="Nombre">{l.nombre ?? l.name ?? "-"}</td>
-                  <td data-label="Tipo">{l.tipo ?? l.type ?? "-"}</td>
-                  <td data-label="Ubicación"
-                    >{l.ubicacion ?? l.location ?? "-"}</td
-                  >
-                  <td data-label="Descripción" class="td-desc"
-                    >{l.descripcion ?? l.description ?? "-"}</td
-                  >
-                </tr>
+                <div class="card place-card">
+                  <h3 class="card-name">
+                    {getFieldValue(l, "nombre", "name")}
+                  </h3>
+                  <div class="card-detail">
+                    <span class="detail-label">Tipo:</span>
+                    <span class="detail-value"
+                      >{getFieldValue(l, "tipo", "type")}</span
+                    >
+                  </div>
+                  <div class="card-detail">
+                    <span class="detail-label">Ubicación:</span>
+                    <span class="detail-value"
+                      >{getFieldValue(l, "ubicacion", "location")}</span
+                    >
+                  </div>
+                  <div class="card-description">
+                    <p class="description-text">
+                      {getFieldValue(l, "descripcion", "description")}
+                    </p>
+                  </div>
+                </div>
               {/each}
-            </tbody>
-          </table>
+            </div>
+          {/if}
         </div>
       {/if}
-    </div>
 
-    <!-- SERVICIOS -->
-    <div class="card">
-      <h2 class="card-title">Servicios</h2>
+      <!-- SERVICIOS SECTION -->
+      {#if currentCategory === "servicios"}
+        <div class="info-section">
+          <h2 class="section-title">Servicios</h2>
 
-      {#if loading.servicios}
-        <div class="loading-bar"></div>
-      {:else if error.servicios}
-        <p class="message error-msg">{error.servicios}</p>
-      {:else if servicios.length === 0}
-        <p class="message subtext">No hay servicios disponibles.</p>
-      {:else}
-        <div class="table-wrap">
-          <table class="tabla">
-            <thead>
-              <tr>
-                <th>Nombre</th>
-                <th>Categoría</th>
-                <th>Contacto</th>
-                <th class="td-desc-header">Descripción</th>
-              </tr>
-            </thead>
-            <tbody>
+          {#if loading.servicios}
+            <div class="loading-bar"></div>
+          {:else if error.servicios}
+            <p class="message error-msg">{error.servicios}</p>
+          {:else if servicios.length === 0}
+            <p class="message subtext">No hay servicios disponibles.</p>
+          {:else}
+            <div class="card-grid">
               {#each servicios as s}
-                <tr>
-                  <td data-label="Nombre">{s.nombre ?? s.name ?? "-"}</td>
-                  <td data-label="Categoría"
-                    >{s.categoria ?? s.category ?? "-"}</td
-                  >
-                  <td data-label="Contacto">{s.contacto ?? s.phone ?? "-"}</td>
-                  <td data-label="Descripción" class="td-desc"
-                    >{s.descripcion ?? s.description ?? "-"}</td
-                  >
-                </tr>
+                <div class="card service-card">
+                  <h3 class="card-name">
+                    {getFieldValue(s, "nombre", "name")}
+                  </h3>
+                  <div class="card-detail">
+                    <span class="detail-label">Categoría:</span>
+                    <span class="detail-value"
+                      >{getFieldValue(s, "categoria", "category")}</span
+                    >
+                  </div>
+                  <div class="card-detail">
+                    <span class="detail-label">Contacto:</span>
+                    <span class="detail-value"
+                      >{getFieldValue(s, "contacto", "phone")}</span
+                    >
+                  </div>
+                  <div class="card-description">
+                    <p class="description-text">
+                      {getFieldValue(s, "descripcion", "description")}
+                    </p>
+                  </div>
+                </div>
               {/each}
-            </tbody>
-          </table>
+            </div>
+          {/if}
         </div>
       {/if}
     </div>
@@ -201,27 +252,40 @@
 <Footer />
 
 <style>
-  /* Variables de Color (CSS Puro) - Mismo estilo que Reservas/Perfil */
-  :root {
-    --color-dark: #1f2937; /* Fondo de la página principal */
-    --color-card: #0f172a; /* Fondo de las tarjetas */
+  /* ---------------------------------- */
+  /* VARIABLES DE COLOR - UNIFICADAS */
+  /* ---------------------------------- */
+  :global(:root) {
+    --color-dark: #0f172a; /* Fondo muy oscuro (Unificado con Navbars) */
+    --color-card-bg: #1a202c; /* Fondo de Tarjeta (Ligeramente más claro) */
     --color-primary: #1e3a8a; /* Azul Principal */
     --color-secondary: #fcd34d; /* Amarillo/Naranja de Resalte */
     --color-text-light: #e2e8f0;
     --color-error: #ef4444;
-    --color-success: #10b981;
     --color-neutral: #9ca3af;
+    --color-detail-label: #a0a7af; /* Gris para etiquetas de detalle */
+    --shadow-card: 0 4px 10px rgba(0, 0, 0, 0.3);
+    --color-highlight: #60a5fa; /* Azul suave para IDs y destacados */
+  }
+
+  /* FIX CRÍTICO: Aplicamos el fondo oscuro globalmente al viewport. */
+  :global(body),
+  :global(html) {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    background-color: var(--color-card-bg);
   }
 
   /* ---------------------------------- */
   /* LAYOUT PRINCIPAL */
   /* ---------------------------------- */
   .main {
-    background: var(--color-dark);
+    background: var(--color-card-bg);
     min-height: calc(100vh - 160px);
     padding: 30px 20px;
     color: var(--color-text-light);
-    font-family: Arial, sans-serif;
+    font-family: "Inter", sans-serif;
   }
   .main-content {
     max-width: 1200px;
@@ -232,36 +296,163 @@
     color: var(--color-secondary);
     margin-bottom: 10px;
     font-size: 2.4rem;
-    font-weight: bold;
+    font-weight: 800;
   }
   .intro-text {
     text-align: center;
     color: var(--color-neutral);
-    margin-bottom: 30px;
+    margin-bottom: 40px;
     font-size: 1rem;
+    max-width: 700px;
+    margin-left: auto;
+    margin-right: auto;
   }
 
   /* ---------------------------------- */
-  /* CARDS Y MENSAJES */
+  /* NAVEGACIÓN POR PESTAÑAS (TABS) */
   /* ---------------------------------- */
-  .card {
-    background: var(--color-card);
-    padding: 25px;
-    margin-bottom: 30px;
-    border-radius: 12px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-    border-top: 5px solid var(--color-primary);
+  .category-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    /* Reducimos el margen inferior aquí para que se vea más pegado al contenido */
+    margin-bottom: 35px;
+    flex-wrap: wrap;
   }
-  .card-title {
-    color: var(--color-primary);
-    font-size: 1.5rem;
-    margin-bottom: 20px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+
+  .tab-btn {
+    padding: 12px 25px;
+    /* Usamos color-border para el borde, que es un gris oscuro */
+    border: 2px solid var(--color-border);
+    border-radius: 8px;
+    background-color: var(--color-dark);
+    color: var(--color-neutral);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    text-transform: none; /* Quitamos uppercase en los botones de pestaña */
+  }
+
+  .tab-btn:hover {
+    background-color: #2a3547; /* Un poco más claro en hover */
+    color: var(--color-text-light);
+    transform: translateY(-2px); /* Pequeño levantamiento en hover */
+  }
+
+  .tab-btn.active {
+    border-color: var(--color-primary);
+    background-color: var(--color-primary);
+    color: var(--color-text-light);
+    /* Sombra azul brillante solicitada */
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.8);
+    transform: translateY(0); /* Evita que el botón activo se levante */
+  }
+
+  /* ---------------------------------- */
+  /* SECCIONES Y TÍTULOS */
+  /* ---------------------------------- */
+  .info-section {
+    margin-bottom: 40px;
+  }
+
+  .section-title {
+    color: var(
+      --color-secondary
+    ); /* Cambiado a secondary para mejor contraste */
+    text-align: center;
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 25px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--color-card-bg);
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  /* ---------------------------------- */
+  /* GRID DE TARJETAS (CARDS) */
+  /* ---------------------------------- */
+  .card-grid {
+    display: grid;
+    /* 3 columnas en desktop, se ajusta a 1 en móvil */
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 25px;
+  }
+
+  .card {
+    background: var(--color-dark);
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: var(--shadow-card);
+    transition:
+      transform 0.3s ease,
+      box-shadow 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.5);
+  }
+
+  /* ---------------------------------- */
+  /* CONTENIDO DE LA TARJETA */
+  /* ---------------------------------- */
+  .card-name {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--color-secondary);
+    margin-bottom: 15px;
+    border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
     padding-bottom: 10px;
   }
+
+  .card-detail {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px 0;
+    font-size: 0.95rem;
+  }
+
+  .detail-label {
+    color: var(--color-detail-label);
+    font-weight: 500;
+  }
+
+  .detail-value {
+    color: var(--color-text-light);
+    font-weight: 400;
+    text-align: right;
+    max-width: 60%; /* Permite que el valor sea más corto si es necesario */
+  }
+
+  .card-description {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    flex-grow: 1; /* Empuja el footer o contenido restante hacia abajo */
+  }
+
+  .description-text {
+    font-size: 0.9rem;
+    color: var(--color-neutral);
+    line-height: 1.5;
+  }
+
+  /* ---------------------------------- */
+  /* ESTADOS (LOADING/ERROR) */
+  /* ---------------------------------- */
   .message {
     padding: 10px 0;
     font-weight: 500;
+    text-align: center;
   }
   .error-msg {
     color: var(--color-error);
@@ -270,11 +461,9 @@
     color: var(--color-neutral);
   }
 
-  /* Loading State */
   .loading-bar {
     height: 4px;
     width: 100%;
-    background: #374151;
     border-radius: 2px;
     overflow: hidden;
   }
@@ -296,119 +485,39 @@
   }
 
   /* ---------------------------------- */
-  /* TABLAS (Misma Estructura Responsiva que Reservas) */
-  /* ---------------------------------- */
-  .table-wrap {
-    overflow-x: auto;
-    width: 100%;
-  }
-  .tabla {
-    width: 100%;
-    min-width: 600px;
-    border-collapse: separate;
-    border-spacing: 0 10px; /* Espacio entre filas */
-    color: var(--color-text-light);
-  }
-  .tabla thead tr {
-    background: #2d3748;
-    font-size: 0.9rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-  .tabla th,
-  .tabla td {
-    padding: 12px 15px;
-    text-align: left;
-    border: none;
-  }
-  .tabla tbody tr {
-    background: #253141;
-    border-radius: 8px;
-    transition: background 0.2s;
-  }
-  .tabla tbody tr:hover {
-    background: #2d3748;
-  }
-
-  /* Estilo para la columna de descripción */
-  .td-desc-header {
-    width: 30%; /* Ocupa más espacio para la descripción */
-  }
-  .td-desc {
-    max-width: 250px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  /* ---------------------------------- */
-  /* RESPONSIVIDAD (Media Queries para Móvil) */
+  /* RESPONSIVIDAD (Móvil) */
   /* ---------------------------------- */
   @media (max-width: 768px) {
     .main {
       padding: 15px;
     }
-    .page-title {
-      font-size: 2rem;
+
+    .category-tabs {
+      gap: 10px;
+      margin-bottom: 30px;
     }
+
+    .tab-btn {
+      padding: 10px 18px;
+      font-size: 0.9rem;
+    }
+
+    .card-grid {
+      /* En móvil, solo una columna por defecto */
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+
+    .section-title {
+      font-size: 1.5rem;
+    }
+
     .card {
       padding: 15px;
     }
 
-    /* Ocultar el ID en móvil si es irrelevante para la vista compacta,
-       pero lo mantendremos para evitar cambios en la estructura de datos
-       que no se ve en el código original. Aquí se han quitado los IDs
-       innecesarios en la vista principal para simplificar la tabla. */
-
-    /* TABLA: Modo Responsivo (Tarjetas por Fila) */
-    .tabla {
-      min-width: 100%;
-      display: block;
-    }
-    .tabla thead {
-      display: none; /* Oculta el encabezado en móvil */
-    }
-    .tabla tbody,
-    .tabla tr {
-      display: block;
-    }
-    .tabla tr {
-      margin-bottom: 15px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 8px;
-    }
-
-    .tabla td {
-      display: block;
-      text-align: right;
-      padding-left: 50%;
-      position: relative;
-    }
-
-    .tabla td:before {
-      /* Muestra la etiqueta del encabezado (th) */
-      content: attr(data-label);
-      position: absolute;
-      left: 10px;
-      width: 45%;
-      padding-right: 10px;
-      white-space: nowrap;
-      text-align: left;
-      font-weight: 600;
-      color: var(--color-secondary);
-    }
-
-    /* La descripción debe poder envolver texto */
-    .td-desc {
-      white-space: normal;
-      overflow: visible;
-      text-overflow: clip;
-      max-width: 100%; /* Asegura que la celda usa todo el ancho disponible */
-    }
-    .td-desc:before {
-      /* Asegura que la etiqueta de descripción esté visible */
-      line-height: 1.5;
-      top: 10px;
+    .card-name {
+      font-size: 1.2rem;
     }
   }
 </style>

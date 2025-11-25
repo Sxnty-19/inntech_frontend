@@ -3,6 +3,8 @@
   import NavbarA from "$lib/components/NavbarA.svelte";
   import Footer from "$lib/components/Footer.svelte";
   import { onMount } from "svelte";
+  // Importar la transición 'fly' de Svelte para la animación
+  import { fly } from "svelte/transition";
 
   let user = null;
 
@@ -23,10 +25,15 @@
   // Documentos existentes
   let documentos = [];
 
-  let mensaje = "";
-  let error = "";
+  // Variables para la nueva Notificación Flotante (LISTO)
+  let notificationText = "";
+  let notificationType = ""; // Puede ser 'success' o 'error'
 
   onMount(async () => {
+    // Comprobar si 'fly' está disponible (depende del entorno de ejecución)
+    // En un entorno Svelte completo, no es necesario, pero lo mantengo por si acaso.
+    // console.log("Svelte transition fly imported.");
+
     const stored = localStorage.getItem("user");
     if (!stored) return;
     user = JSON.parse(stored);
@@ -42,6 +49,20 @@
     await cargarDocumentos();
   });
 
+  /**
+   * Muestra la notificación flotante y la oculta después de 3 segundos.
+   * @param {string} text - El mensaje a mostrar.
+   * @param {string} type - 'success' o 'error'.
+   */
+  function showNotification(text, type) {
+    notificationText = text;
+    notificationType = type;
+    setTimeout(() => {
+      notificationText = "";
+      notificationType = "";
+    }, 3000);
+  }
+
   async function cargarTiposDoc() {
     try {
       const res = await fetch(
@@ -51,6 +72,8 @@
       if (res.ok) tiposDoc = data.data;
     } catch (e) {
       console.error(e);
+      // Solo mostrar un error si la carga es crítica
+      // showNotification("Error al cargar tipos de documento", 'error');
     }
   }
 
@@ -65,6 +88,7 @@
       }
     } catch (e) {
       console.error(e);
+      // showNotification("Error al cargar documentos", 'error');
     }
   }
 
@@ -72,8 +96,6 @@
   // Actualizar usuario
   // ============================
   async function actualizarUsuario() {
-    error = "";
-    mensaje = "";
     try {
       const payload = {
         primer_nombre,
@@ -94,24 +116,21 @@
 
       const data = await res.json();
       if (!res.ok) {
-        error = data.detail || "Error al actualizar usuario";
+        // Muestra el error
+        showNotification(data.detail || "Error al actualizar usuario", "error");
         return;
       }
 
-      // Mostrar mensaje de éxito
-      mensaje = "Datos actualizados correctamente";
-
-      // Limpiar mensaje de éxito después de 3 segundos
-      setTimeout(() => {
-        mensaje = "";
-      }, 3000);
+      // Mostrar notificación de éxito
+      showNotification("Datos actualizados correctamente", "success");
 
       // actualizar el localstorage
       const updatedUser = { ...user, ...payload };
       localStorage.setItem("user", JSON.stringify(updatedUser));
       user = updatedUser;
     } catch (e) {
-      error = "Error de conexión";
+      // Muestra el error de conexión
+      showNotification("Error de conexión", "error");
     }
   }
 
@@ -119,11 +138,12 @@
   // Crear documento
   // ============================
   async function crearDocumento() {
-    error = "";
-    mensaje = "";
-
     if (!id_tdocumento || !numero_documento || !lugar_expedicion) {
-      error = "Todos los campos del documento son obligatorios";
+      // Muestra el error de validación
+      showNotification(
+        "Todos los campos del documento son obligatorios",
+        "error",
+      );
       return;
     }
 
@@ -148,26 +168,26 @@
       const data = await res.json();
 
       if (!res.ok) {
-        error = data.detail || "No se pudo crear el documento";
+        // Muestra el error del servidor
+        showNotification(
+          data.detail || "No se pudo crear el documento",
+          "error",
+        );
         return;
       }
 
-      // Mostrar mensaje de éxito
-      mensaje = "Documento creado con éxito";
+      // Mostrar notificación de éxito
+      showNotification("Documento creado con éxito", "success");
 
       // Limpiar campos después del éxito
       numero_documento = "";
       lugar_expedicion = "";
       id_tdocumento = "";
 
-      // Limpiar mensaje de éxito después de 3 segundos
-      setTimeout(() => {
-        mensaje = "";
-      }, 3000);
-
       await cargarDocumentos();
     } catch (e) {
-      error = "Error de conexión";
+      // Muestra el error de conexión
+      showNotification("Error de conexión", "error");
     }
   }
 </script>
@@ -178,15 +198,6 @@
 <section class="main-container">
   <div class="main-content">
     <h2 class="title">Administrar Perfil</h2>
-
-    <!-- Mensajes de Estado -->
-    {#if error}
-      <div class="status-message error-message">{error}</div>
-    {/if}
-
-    {#if mensaje}
-      <div class="status-message success-message">{mensaje}</div>
-    {/if}
 
     <div class="grid-layout">
       <!-- COLUMNA 1: FORMULARIO DE USUARIO -->
@@ -308,6 +319,21 @@
 
 <Footer />
 
+<!-- Notificación Flotante (Fuera del main-container para asegurar position: fixed) -->
+{#if notificationText}
+  <div
+    class="floating-notification {notificationType}"
+    transition:fly={{ y: 50, duration: 300 }}
+  >
+    <i
+      class="fas"
+      class:fa-check-circle={notificationType === "success"}
+      class:fa-times-circle={notificationType === "error"}
+    ></i>
+    {notificationText}
+  </div>
+{/if}
+
 <style>
   /* ============================================== */
   /* Variables y Resets Globales */
@@ -318,8 +344,12 @@
     --color-primary: #1e3a8a; /* Azul principal */
     --color-secondary: #fcd34d; /* Amarillo/Naranja de acento */
     --color-text: #e2e8f0; /* Texto claro */
-    --color-success: #34d399; /* Verde (Éxito) */
-    --color-danger: #ef4444; /* Rojo (Error) */
+    --color-success: #15803d; /* Verde oscuro para éxito */
+    --color-success-light: #dcfce7; /* Fondo claro para éxito (Nuevo) */
+    --color-danger: #b91c1c; /* Rojo oscuro para error */
+    --color-danger-light: #fee2e2; /* Fondo claro para error (Nuevo) */
+    /* --color-success-bg: rgba(52, 211, 153, 0.15); // Eliminado */
+    /* --color-danger-bg: rgba(239, 68, 68, 0.15); // Eliminado */
   }
 
   /* Nuevo: Reset global para eliminar el scroll horizontal no deseado */
@@ -366,26 +396,37 @@
   }
 
   /* ---------------------------------- */
-  /* MENSAJES DE ESTADO */
+  /* NOTIFICACIÓN FLOTANTE (ESTILOS CORREGIDOS) */
   /* ---------------------------------- */
-  .status-message {
-    padding: 12px;
+  .floating-notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 15px 20px;
     border-radius: 8px;
-    margin-bottom: 20px;
-    text-align: center;
     font-weight: 600;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    max-width: 300px;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    /* Añadido contraste de texto general */
+    color: var(--color-dark);
   }
 
-  .error-message {
-    background: rgba(239, 68, 68, 0.15); /* Rojo tenue */
-    color: var(--color-danger);
-    border: 1px solid var(--color-danger);
-  }
-
-  .success-message {
-    background: rgba(52, 211, 153, 0.15); /* Verde tenue */
-    color: var(--color-success);
+  /* Estilos corregidos para Éxito */
+  .floating-notification.success {
+    background: var(--color-success); /* Fondo muy claro */
+    color: var(--color-success-light); /* Texto verde oscuro */
     border: 1px solid var(--color-success);
+  }
+
+  /* Estilos corregidos para Error */
+  .floating-notification.error {
+    background: var(--color-danger); /* Fondo muy claro */
+    color: var(--color-danger-light); /* Texto rojo oscuro */
+    border: 1px solid var(--color-danger);
   }
 
   /* ---------------------------------- */
@@ -406,7 +447,6 @@
     background: var(
       --color-dark
     ); /* Fondo de la caja más oscuro que el fondo del cuerpo */
-    border: 1px solid var(--color-primary); /* Borde azul principal */
     padding: 30px;
     border-radius: 12px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
@@ -573,11 +613,13 @@
   }
 
   .status-active {
+    /* Mantenemos el color fuerte en el texto del badge */
     background: var(--color-success);
-    color: var(--color-dark);
+    color: white;
   }
 
   .status-inactive {
+    /* Mantenemos el color fuerte en el texto del badge */
     background: var(--color-danger);
     color: white;
   }
@@ -610,6 +652,15 @@
 
     .box-title {
       font-size: 1.3rem;
+    }
+
+    /* Ajuste para notificaciones en móvil */
+    .floating-notification {
+      top: 10px;
+      bottom: auto; /* Asegurar que no esté anclado al fondo */
+      left: 10px;
+      right: 10px;
+      max-width: none;
     }
   }
 </style>
