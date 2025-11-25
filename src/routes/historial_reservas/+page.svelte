@@ -10,7 +10,7 @@
   let historial = [];
   let error = "";
   let isLoading = true;
-  // NUEVO: Estado para controlar cuando el historial ha sido cargado y la animación debe iniciar
+  // Estado para controlar cuando el historial ha sido cargado y la animación debe iniciar
   let isLoaded = false;
 
   // ===== Cargar usuario desde localStorage =====
@@ -100,42 +100,61 @@
     <p class="error">{error}</p>
   {:else if historial.length > 0}
     <!-- Clase animada solo si isLoaded es true -->
-    <table class="tabla" class:fade-in={isLoaded}>
-      <thead>
-        <tr>
-          <th>ID Reserva</th>
-          <th>Fecha Inicio</th>
-          <th>Fecha Fin</th>
-          <th>Estado</th>
-        </tr>
-      </thead>
-
-      <tbody>
-        <!-- USO: Usamos index (i) para el delay de la animación -->
-        {#each historial as item, i}
-          <tr style="animation-delay: {i * 0.05}s;">
-            <td class="highlight">{item.id_reserva}</td>
-            <td>{item.date_start.substring(0, 10)}</td>
-            <td>{item.date_end.substring(0, 10)}</td>
-            <td>
-              <!-- Estilo dinámico para el estado -->
-              <span
-                class:estado-terminado={item.estado === "terminada"}
-                class:estado-cancelado={item.estado === "cancelada"}
-              >
-                {item.estado}
-              </span>
-            </td>
+    <div class="table-wrap">
+      <table class="tabla" class:fade-in={isLoaded}>
+        <thead>
+          <tr>
+            <th>ID Reserva</th>
+            <th>Fecha Inicio</th>
+            <th>Fecha Fin</th>
+            <th>Estado</th>
           </tr>
-        {/each}
-      </tbody>
-    </table>
+        </thead>
+
+        <tbody>
+          <!-- USO: Usamos index (i) para el delay de la animación -->
+          {#each historial as item, i}
+            <tr style="animation-delay: {i * 0.05}s;">
+              <td class="highlight">{item.id_reserva}</td>
+              <td>{item.date_start.substring(0, 10)}</td>
+              <td>{item.date_end.substring(0, 10)}</td>
+              <td>
+                <!-- Estilo dinámico para el estado -->
+                <span
+                  class:estado-terminado={item.estado === "terminada"}
+                  class:estado-cancelado={item.estado === "cancelada"}
+                >
+                  {item.estado}
+                </span>
+              </td>
+            </tr>
+          {/each}
+        </tbody>
+      </table>
+    </div>
   {/if}
 </section>
 
 <Footer />
 
 <style>
+  /* >>> CRITICAL FIX: GLOBAL RESET <<< */
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box; /* Asegura que padding/border no cause overflow */
+    width: 100%;
+    /* Previene el scroll horizontal de la página entera por desbordamiento */
+    overflow-x: hidden;
+  }
+
+  *,
+  *::before,
+  *::after {
+    box-sizing: inherit;
+  }
+
   /* ---------------------------------- */
   /* Paleta de Colores (Diseño Dark/Moderno) */
   /* ---------------------------------- */
@@ -151,6 +170,33 @@
     --color-success: #10b981; /* Verde para estado Terminado */
     --color-danger: #ef4444; /* Rojo para estado Cancelado */
     --color-bg-light: #1e293b; /* Fondo para la barra de carga */
+
+    /* Variables de color para el Scrollbar */
+    --scrollbar-track: #2d3748;
+    --scrollbar-thumb: #4a5568;
+    --scrollbar-thumb-hover: #6b7280;
+  }
+
+  /* ---------------------------------- */
+  /* DISEÑO DEL SCROLLBAR (solo WebKit) */
+  /* ---------------------------------- */
+  .table-wrap::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .table-wrap::-webkit-scrollbar-track {
+    background: var(--scrollbar-track);
+    border-radius: 10px;
+  }
+
+  .table-wrap::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb);
+    border-radius: 10px;
+  }
+
+  .table-wrap::-webkit-scrollbar-thumb:hover {
+    background: var(--scrollbar-thumb-hover);
   }
 
   /* ---------------------------------- */
@@ -240,6 +286,7 @@
   /* ---------------------------------- */
 
   .main {
+    /* El 100vh ahora es seguro gracias al reset */
     min-height: calc(100vh - 160px);
     padding: 60px 20px;
     background: var(--color-bg-primary);
@@ -263,33 +310,41 @@
   }
 
   /* Tabla de Historial (Diseño Responsivo y Elegante) */
+  .table-wrap {
+    overflow-x: auto;
+    /* Scroll vertical es para esta caja, que está contenida */
+    max-height: 60vh;
+    overflow-y: auto;
+    border: 1px solid #334155; /* Este es el borde explícito alrededor del área de scroll */
+    border-radius: 8px;
+    margin: 0 auto; /* Centrar el contenedor de scroll */
+    max-width: 1000px; /* Limita el ancho del contenedor */
+  }
 
   .tabla {
-    overflow-x: auto;
-    /* INCLUIDO: Altura máxima y scroll vertical */
-    max-height: 450px;
-    overflow-y: auto;
+    /* Eliminamos overflow-x y overflow-y redundantes */
+    /* width: 100% será 100% del table-wrap, lo cual está bien */
     width: 100%;
-    min-width: 700px; /* Asegura scroll horizontal en móvil */
+    /* Mantenemos el min-width solo para asegurar que la tabla tenga ancho suficiente y FUERZE el scroll-x en table-wrap cuando la pantalla es pequeña. */
+    min-width: 700px;
     border-collapse: separate;
     border-spacing: 0;
     background: var(--color-table-bg);
     border-radius: 12px;
+    /* Mantenemos overflow: hidden para que los bordes redondeados se vean bien */
     overflow: hidden;
-    margin: 0 auto; /* Centrar tabla en desktop */
-    max-width: 1000px;
+
+    /* ELIMINADO: position: sticky, top: 0, z-index: 10, ya que esto debe ir en TH */
   }
 
   th {
     padding: 18px 20px;
-    background: var(
-      --color-table-bg
-    ); /* Fondo del encabezado (gris más oscuro) */
-    color: var(--color-highlight);
+    background: var(--color-primary); /* Fondo del encabezado */
+    color: var(--color-text);
     font-size: 1rem;
     font-weight: 700;
     text-align: left;
-    border-bottom: 2px solid var(--color-highlight);
+    /* Esto es lo que hace que la cabecera se quede fija dentro de .table-wrap */
     position: sticky;
     top: 0;
     z-index: 10;
@@ -317,7 +372,7 @@
 
   /* Estilos de Contenido Adicional */
   .highlight {
-    color: var(--color-highlight);
+    color: var(--color-accent);
     font-weight: 600;
   }
 

@@ -538,7 +538,7 @@
                 <tbody>
                   {#each reservasActivas as r (r.id_reserva)}
                     <tr>
-                      <td>{r.id_reserva}</td>
+                      <td class="highlight">{r.id_reserva}</td>
                       <td>{r.date_start.substring(0, 10)}</td>
                       <td>{r.date_end.substring(0, 10)}</td>
                       <td>
@@ -661,6 +661,11 @@
     /* Variables usadas en los botones de pestaña */
     --color-dark: #1f2937;
     --color-neutral: #e5e7eb;
+
+    /* Variables de color para el Scrollbar (Añadidas aquí) */
+    --scrollbar-track: #2d3748;
+    --scrollbar-thumb: #4a5568;
+    --scrollbar-thumb-hover: #6b7280;
   }
 
   /* Contenedor principal */
@@ -682,6 +687,35 @@
     margin-bottom: 30px;
     font-weight: 800;
   }
+
+  /*
+  ==============================================
+  ESTILOS DEL SCROLLBAR (Aplicado a .table-container)
+  ==============================================
+  */
+  .table-container::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .table-container::-webkit-scrollbar-track {
+    background: var(--scrollbar-track);
+    border-radius: 10px;
+  }
+
+  .table-container::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb);
+    border-radius: 10px;
+  }
+
+  .table-container::-webkit-scrollbar-thumb:hover {
+    background: var(--scrollbar-thumb-hover);
+  }
+  /*
+  ==============================================
+  FIN ESTILOS DEL SCROLLBAR
+  ==============================================
+  */
 
   /*
   ==============================================
@@ -879,7 +913,7 @@
 
   .btn-accent {
     background: var(--color-accent);
-    color: var(--color-bg-primary);
+    color: var(--color-bg-box);
     font-weight: 700;
     padding: 2px 8px;
     font-size: 0.85rem;
@@ -982,6 +1016,22 @@
     margin-bottom: 0;
   }
 
+  /* Aplicar Scrollbar a la lista de habitaciones disponibles */
+  .room-list .list::-webkit-scrollbar {
+    width: 8px;
+  }
+  .room-list .list::-webkit-scrollbar-track {
+    background: var(--scrollbar-track);
+    border-radius: 10px;
+  }
+  .room-list .list::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb);
+    border-radius: 10px;
+  }
+  .room-list .list::-webkit-scrollbar-thumb:hover {
+    background: var(--scrollbar-thumb-hover);
+  }
+
   .list-item {
     display: flex;
     justify-content: space-between;
@@ -1028,6 +1078,7 @@
     border-radius: 8px;
     box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.5); /* Sombra interior sutil */
     padding: 1px;
+    border: 1px solid var(--color-border);
   }
 
   table {
@@ -1036,20 +1087,18 @@
     border-collapse: separate;
     border-spacing: 0;
     background: var(--color-table-bg);
-    border-radius: 12px;
+    /* Quitamos el border-radius del table ya que se aplica al container */
     overflow: hidden;
-    min-width: 700px;
   }
 
   /* CLAVE: Hace que el encabezado se pegue al top del contenedor scrollable */
   th {
     padding: 18px 20px;
-    background: var(--color-table-bg);
-    color: var(--color-highlight);
+    background: var(--color-primary);
+    color: var(--color-text-light);
     font-size: 1rem;
     font-weight: 700;
     text-align: left;
-    border-bottom: 2px solid var(--color-highlight);
     position: sticky;
     top: 0;
     z-index: 10;
@@ -1058,7 +1107,7 @@
 
   td {
     padding: 15px 20px;
-    color: var(--color-text);
+    color: var(--color-text-light);
     border-bottom: 1px solid var(--color-border);
     font-size: 0.95rem;
   }
@@ -1072,7 +1121,7 @@
   }
 
   tbody tr:hover {
-    background: var(--color-card-bg); /* Fondo en hover sutil */
+    background: #1e293b; /* Fondo en hover sutil */
   }
   .empty-message,
   .empty-message-list {
@@ -1083,6 +1132,11 @@
     border-radius: 8px;
     text-align: center;
     margin-top: 15px;
+  }
+
+  .highlight {
+    color: var(--color-accent);
+    font-weight: 600;
   }
 
   /*
@@ -1102,22 +1156,20 @@
     padding: 15px 25px;
     border-radius: 8px;
     color: white;
-    background-color: var(--color-danger); /* Default: Error */
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     display: flex;
     align-items: center;
     gap: 15px;
     font-weight: 600;
-    animation: bounce 0.5s ease-out;
-  }
-
-  .message-content p {
-    margin: 0; /* Asegura que el párrafo no tenga márgenes extras */
-    max-width: 300px;
+    animation: bounce 0.5s ease-out; /* Animación de rebote al aparecer */
   }
 
   .message-content.success {
     background-color: var(--color-success);
+  }
+
+  .message-content:not(.success) {
+    background-color: var(--color-danger);
   }
 
   .message-content i {
@@ -1156,7 +1208,7 @@
 
   /*
   ==============================================
-  2. MODAL DE CONFIRMACIÓN (Nuevo Estilo)
+  2. MODAL DE CONFIRMACIÓN DE CANCELACIÓN
   ==============================================
   */
   .custom-modal-backdrop {
@@ -1165,12 +1217,11 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.7);
+    background: rgba(0, 0, 0, 0.7);
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 999;
-    padding: 20px;
+    z-index: 2000;
   }
 
   .custom-modal-content {
@@ -1178,17 +1229,15 @@
     padding: 30px;
     border-radius: 12px;
     max-width: 450px;
-    width: 100%;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
-    text-align: center;
-    transform: scale(0.9);
-    opacity: 0;
-    animation: modalScaleUp 0.3s forwards;
+    width: 90%;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+    animation: scaleIn 0.3s ease-out;
   }
 
   .modal-title {
-    font-size: 1.8rem;
     color: var(--color-danger);
+    font-size: 1.8rem;
+    font-weight: 700;
     margin-bottom: 15px;
     border-bottom: 2px solid var(--color-danger);
     padding-bottom: 10px;
@@ -1196,24 +1245,26 @@
 
   .modal-body {
     color: var(--color-text-light);
-    font-size: 1rem;
-    line-height: 1.5;
     margin-bottom: 25px;
+    line-height: 1.5;
   }
 
   .modal-actions {
     display: flex;
-    gap: 15px;
-    justify-content: center;
+    justify-content: space-between;
+    gap: 10px;
   }
 
   .modal-actions button {
     flex: 1;
-    padding: 12px 15px;
-    font-size: 1rem;
+    padding: 12px;
   }
 
-  @keyframes modalScaleUp {
+  @keyframes scaleIn {
+    from {
+      transform: scale(0.8);
+      opacity: 0;
+    }
     to {
       transform: scale(1);
       opacity: 1;
@@ -1222,81 +1273,46 @@
 
   /*
   ==============================================
-  Media Queries (Responsividad)
+  RESPONSIVIDAD
   ==============================================
   */
-
-  /* Escritorio (>= 1024px) */
-  @media (min-width: 1024px) {
+  @media (min-width: 768px) {
     .two-column-layout {
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 2fr 1.5fr; /* Más espacio para búsqueda */
+      gap: 40px;
     }
-    /* Restablece el margen superior para que se alinee con los inputs */
+    /* Ajuste el botón de búsqueda para que se alinee con los inputs en pantallas más grandes */
     .btn-group-search {
       margin-top: 0;
     }
   }
 
-  /* Tablet (<= 768px) */
-  @media (max-width: 768px) {
-    .page-title {
-      font-size: 2.2rem;
-      margin-bottom: 30px;
+  @media (max-width: 767px) {
+    .form-grid {
+      grid-template-columns: 1fr; /* Una columna */
+      gap: 15px;
+    }
+
+    .btn-group-search {
+      grid-column: 1 / -1; /* Ocupa todo el ancho */
+      margin-top: 0; /* Eliminar margen superior en móvil */
     }
 
     .card {
       padding: 20px;
     }
 
-    .two-column-layout {
-      /* Se colapsa a una sola columna */
-      grid-template-columns: 1fr;
+    .tab-btn {
+      flex-grow: 1;
     }
 
-    .form-grid {
-      /* Pasa de 3 columnas a 2 columnas */
-      grid-template-columns: 1fr 1fr;
-      gap: 15px; /* Reducimos el gap en tablet */
-    }
-
-    /* El botón de búsqueda ahora ocupa toda la fila en tablet */
-    .btn-group-search {
-      grid-column: 1 / -1;
-      margin-top: 15px; /* Añadimos un margen superior para separarlo visualmente */
-    }
-
-    .btn-search {
-      font-size: 0.9rem;
-      padding: 10px;
-    }
-
-    /* Listas se vuelven apiladas */
-    .list-item {
-      flex-direction: column;
-      align-items: flex-start;
-      padding: 10px;
-    }
-
-    .list-item button {
-      margin-top: 8px;
-      margin-left: 0;
-      width: 100%;
-    }
-
-    .message-modal {
-      /* Mover al centro inferior en móvil */
-      top: auto;
-      bottom: 20px;
-      right: 50%;
-      transform: translateX(50%);
-    }
-
-    /* Ajuste para que la tabla sea legible sin romper el layout */
     .table-container {
-      /* En móvil, no ponemos max-height para evitar dos barras de scroll vertical (una del contenedor y otra de la página) */
-      max-height: none;
-      overflow-y: visible;
-      /* El scroll horizontal sigue activo (overflow-x: auto) */
+      /* Altura ligeramente menor para móviles */
+      max-height: 300px;
+    }
+
+    .custom-modal-content {
+      padding: 20px;
     }
   }
 </style>

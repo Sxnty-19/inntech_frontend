@@ -2,12 +2,10 @@
     <link
         rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
-        integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLMD/CD+5N+yEStRjS1K48xSgH44n/B+xJ1A40k8c7oE9a9u5pG2Gq0wF04iP5w=="
         crossorigin="anonymous"
         referrerpolicy="no-referrer"
     />
     <style>
-        /* Variables y estilos globales */
         :root {
             --color-primary: #1e3a8a;
             --color-secondary: #fcd34d;
@@ -27,25 +25,21 @@
             max-width: 1200px;
             margin: 0 auto;
             padding: 0 20px 40px;
-            /* Ya no usamos grid aquí. Usamos flexbox para centrar el contenido principal */
             display: flex;
-            justify-content: center; /* Centra el contenido principal (footer-main-content) */
+            justify-content: center;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             margin-bottom: 20px;
         }
 
-        /* NUEVO: Contenedor para las dos columnas, limitando su ancho */
         .footer-main-content {
             display: grid;
-            grid-template-columns: 1fr 1fr; /* 2 columnas de igual ancho */
-            gap: 120px; /* Espacio más amplio entre Contacto y Síguenos */
-            max-width: 700px; /* Limitamos el ancho para que parezca centrado */
-            width: 100%; /* Aseguramos que ocupe el espacio disponible */
+            grid-template-columns: 1fr 1fr;
+            gap: 120px;
+            max-width: 700px;
+            width: 100%;
         }
 
-        /* Títulos */
         .footer-info h3,
-        .footer-links h3,
         .footer-cta h3 {
             font-size: 1.3rem;
             font-weight: 700;
@@ -60,23 +54,20 @@
             display: flex;
             align-items: center;
             line-height: 1.6;
-            justify-content: flex-start;
         }
 
         .footer-icon {
             margin-right: 12px;
             font-size: 1.1em;
-            color: var(--color-secondary);
+            color: var(--color-text);
             width: 18px;
             text-align: center;
         }
 
-        /* Redes Sociales */
         .social-icons {
             margin-bottom: 20px;
             display: flex;
             gap: 12px;
-            justify-content: flex-start;
         }
 
         .social-icon {
@@ -101,9 +92,8 @@
         }
 
         .social-icon i {
-            font-style: normal;
+            color: var(--color-text);
             line-height: 1;
-            color: var(--color-dark);
         }
 
         .footer-bottom {
@@ -111,26 +101,22 @@
             opacity: 0.7;
         }
 
-        /* MEDIA QUERY para Móvil (Centrado total) */
         @media (max-width: 768px) {
             .footer-container {
-                /* Vuelve a ser un contenedor flexible normal en móvil */
                 display: block;
                 padding-bottom: 20px;
             }
 
             .footer-main-content {
-                /* Una sola columna en móvil */
                 grid-template-columns: 1fr;
                 gap: 30px;
-                max-width: none; /* Quitamos el límite de ancho */
+                max-width: none;
             }
 
             .footer-info h3,
             .footer-cta h3 {
                 margin-bottom: 15px;
                 text-align: center;
-                /* Centrado del título en móvil */
                 border-left: none;
                 padding-left: 0;
                 border-bottom: 2px solid var(--color-primary);
@@ -143,12 +129,10 @@
             }
 
             .footer-info p {
-                /* Centrar la línea de contacto */
                 justify-content: center;
             }
 
             .social-icons {
-                /* Centrar los iconos de redes sociales */
                 justify-content: center;
             }
         }
@@ -161,15 +145,15 @@
             <div class="footer-info">
                 <h3>Contáctanos</h3>
                 <p>
-                    <i class="fas fa-phone-alt footer-icon"></i>
+                    <i class="fa-solid fa-phone footer-icon"></i>
                     +57 312 3694858
                 </p>
                 <p>
-                    <i class="fas fa-envelope footer-icon"></i>
+                    <i class="fa-solid fa-envelope footer-icon"></i>
                     reservas@hospedajesur.com
                 </p>
                 <p>
-                    <i class="fas fa-map-marker-alt footer-icon"></i>
+                    <i class="fa-solid fa-location-dot footer-icon"></i>
                     Cra. 4#19A-09 Santa Marta
                 </p>
             </div>
@@ -179,31 +163,31 @@
                 <div class="social-icons">
                     <a
                         href="https://facebook.com"
-                        aria-label="Facebook"
                         class="social-icon facebook"
+                        aria-label="Facebook"
                     >
-                        <i class="fab fa-facebook-f"></i>
+                        <i class="fa-brands fa-facebook-f"></i>
                     </a>
                     <a
                         href="https://instagram.com"
-                        aria-label="Instagram"
                         class="social-icon instagram"
+                        aria-label="Instagram"
                     >
-                        <i class="fab fa-instagram"></i>
+                        <i class="fa-brands fa-instagram"></i>
                     </a>
                     <a
                         href="https://twitter.com"
-                        aria-label="Twitter"
                         class="social-icon twitter"
+                        aria-label="Twitter"
                     >
-                        <i class="fab fa-twitter"></i>
+                        <i class="fa-brands fa-twitter"></i>
                     </a>
                     <a
-                        href="https://wa.me/numerodetelefono"
-                        aria-label="WhatsApp"
+                        href="https://wa.me/3123694858"
                         class="social-icon whatsapp"
+                        aria-label="WhatsApp"
                     >
-                        <i class="fab fa-whatsapp"></i>
+                        <i class="fa-brands fa-whatsapp"></i>
                     </a>
                 </div>
             </div>

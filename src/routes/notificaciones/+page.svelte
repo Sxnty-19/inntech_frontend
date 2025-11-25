@@ -169,7 +169,7 @@
 
 <section class="main">
   <div class="content-container">
-    <h1 class="page-title">Panel de Solicitudes VIP</h1>
+    <h1 class="page-title">Gestion Notificaciones</h1>
 
     <!-- ---------------------------------- -->
     <!-- NAVEGACIÓN TIPO PESTAÑA -->
@@ -370,7 +370,7 @@
   :root {
     --color-bg-primary: #0f172a; /* Fondo principal muy oscuro (slate-900) */
     --color-card-bg: #1e293b; /* Fondo de tarjeta/componente (slate-800) */
-    --color-table-bg: #111827; /* Fondo de tabla muy oscuro (gray-900) */
+    --color-table-bg: #1a202c; /* Fondo de tabla muy oscuro (gray-900) */
     --color-accent-gold: #fcd34d; /* Amarillo principal (Dorado) */
     --color-accent-blue: #60a5fa; /* Azul para highlights (blue-400) */
     --color-text-light: #e2e8f0; /* Texto claro (slate-200) */
@@ -385,6 +385,10 @@
     /* COLORES PARA EL MODAL FLOTANTE */
     --color-modal-success: var(--color-success); /* Verde para éxito */
     --color-modal-error: var(--color-danger); /* Rojo para error */
+    /* Variables de color para el Scrollbar */
+    --scrollbar-track: #2d3748;
+    --scrollbar-thumb: #4a5568;
+    --scrollbar-thumb-hover: #6b7280;
   }
 
   /* ---------------------------------- */
@@ -394,7 +398,7 @@
   .main {
     min-height: calc(100vh - 160px);
     padding: 60px 20px;
-    background: var(--color-bg-primary);
+    background: var(--color-table-bg);
     color: var(--color-text-light);
     font-family: "Inter", sans-serif;
   }
@@ -477,7 +481,7 @@
   /* ---------------------------------- */
 
   .card {
-    background: var(--color-card-bg);
+    background: var(--color-bg-primary);
     border: 1px solid var(--color-border);
     padding: clamp(20px, 4vw, 30px);
     border-radius: 12px;
@@ -491,7 +495,7 @@
   }
 
   .card-history {
-    max-width: 1200px;
+    max-width: 1000px;
     width: 100%;
   }
 
@@ -576,15 +580,36 @@
   /* Tabla (Historial) */
   /* ---------------------------------- */
 
-  .table-wrap {
-    overflow-x: auto;
-    border: 1px solid var(--color-border);
-    border-radius: 8px;
-    max-height: 500px;
-    overflow-y: auto;
-    margin-top: 10px;
+  .table-wrap::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
   }
 
+  .table-wrap::-webkit-scrollbar-track {
+    background: var(--scrollbar-track);
+    border-radius: 10px;
+  }
+
+  .table-wrap::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb);
+    border-radius: 10px;
+  }
+
+  .table-wrap::-webkit-scrollbar-thumb:hover {
+    background: var(--scrollbar-thumb-hover);
+  }
+
+  /* Tabla de Historial (Diseño Responsivo y Elegante) */
+  .table-wrap {
+    overflow-x: auto;
+    /* Scroll vertical es para esta caja, que está contenida */
+    max-height: 60vh;
+    overflow-y: auto;
+    border: 1px solid #334155; /* Este es el borde explícito alrededor del área de scroll */
+    border-radius: 8px;
+    margin: 0 auto; /* Centrar el contenedor de scroll */
+    max-width: 1000px; /* Limita el ancho del contenedor */
+  }
   .tabla {
     width: 100%;
     min-width: 850px;
@@ -593,7 +618,7 @@
   }
 
   .tabla th {
-    background: var(--color-card-bg);
+    background: var(--color-primary);
     color: var(--color-text-light);
     padding: 15px;
     text-align: left;
@@ -603,13 +628,12 @@
     position: sticky;
     top: 0;
     z-index: 5;
-    border-bottom: 2px solid var(--color-accent-blue);
     letter-spacing: 0.5px;
   }
 
   .tabla td {
     padding: 12px 15px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid var(--color-border);
     font-size: 0.95rem;
     color: var(--color-text-light);
   }
@@ -625,7 +649,6 @@
   /* Fila activa (Estado = 1) */
   .active-row {
     background-color: rgba(96, 165, 250, 0.1);
-    border-left: 4px solid var(--color-accent-blue);
   }
 
   .active-row:hover td {
@@ -639,11 +662,6 @@
   .resaltado {
     color: var(--color-accent-gold);
     font-weight: 700;
-  }
-
-  .col-id {
-    color: var(--color-accent-blue);
-    font-weight: 600;
   }
 
   /* Estilos de Estado */

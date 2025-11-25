@@ -378,6 +378,10 @@
     /* COLORES PARA EL MODAL FLOTANTE */
     --color-modal-success: var(--color-success); /* Verde para éxito */
     --color-modal-error: var(--color-danger); /* Rojo para error */
+    /* Variables de color para el Scrollbar */
+    --scrollbar-track: #2d3748;
+    --scrollbar-thumb: #4a5568;
+    --scrollbar-thumb-hover: #6b7280;
   }
 
   :global(body),
@@ -595,12 +599,35 @@
     padding-top: 20px;
   }
 
+  .table-wrap::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .table-wrap::-webkit-scrollbar-track {
+    background: var(--scrollbar-track);
+    border-radius: 10px;
+  }
+
+  .table-wrap::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb);
+    border-radius: 10px;
+  }
+
+  .table-wrap::-webkit-scrollbar-thumb:hover {
+    background: var(--scrollbar-thumb-hover);
+  }
+
+  /* Tabla de Historial (Diseño Responsivo y Elegante) */
   .table-wrap {
     overflow-x: auto;
-    border-radius: 8px;
-    max-height: 400px;
+    /* Scroll vertical es para esta caja, que está contenida */
+    max-height: 60vh;
     overflow-y: auto;
-    border: 1px solid var(--color-border);
+    border: 1px solid #334155; /* Este es el borde explícito alrededor del área de scroll */
+    border-radius: 8px;
+    margin: 0 auto; /* Centrar el contenedor de scroll */
+    max-width: 1000px; /* Limita el ancho del contenedor */
   }
 
   .tabla {
@@ -614,8 +641,8 @@
   }
 
   .tabla th {
-    background: var(--color-card-bg);
-    color: var(--color-highlight);
+    background: var(--color-primary);
+    color: var(--color-text-light);
     padding: 15px;
     text-align: left;
     font-weight: 700;

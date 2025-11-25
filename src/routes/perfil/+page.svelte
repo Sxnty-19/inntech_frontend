@@ -6,6 +6,9 @@
   // Importar la transición 'fly' de Svelte para la animación
   import { fly } from "svelte/transition";
 
+  // Controla la vista activa: 'personales', 'registro', 'documentos'
+  let currentView = "personales";
+
   let user = null;
 
   // Datos usuario
@@ -30,10 +33,6 @@
   let notificationType = ""; // Puede ser 'success' o 'error'
 
   onMount(async () => {
-    // Comprobar si 'fly' está disponible (depende del entorno de ejecución)
-    // En un entorno Svelte completo, no es necesario, pero lo mantengo por si acaso.
-    // console.log("Svelte transition fly imported.");
-
     const stored = localStorage.getItem("user");
     if (!stored) return;
     user = JSON.parse(stored);
@@ -72,8 +71,6 @@
       if (res.ok) tiposDoc = data.data;
     } catch (e) {
       console.error(e);
-      // Solo mostrar un error si la carga es crítica
-      // showNotification("Error al cargar tipos de documento", 'error');
     }
   }
 
@@ -84,11 +81,17 @@
       );
       const data = await res.json();
       if (res.ok) {
-        documentos = data.data.filter((d) => d.id_usuario === user.id_usuario);
+        // Asegúrate de que 'user' no sea null antes de filtrar
+        if (user) {
+          documentos = data.data.filter(
+            (d) => d.id_usuario === user.id_usuario,
+          );
+        } else {
+          documentos = [];
+        }
       }
     } catch (e) {
       console.error(e);
-      // showNotification("Error al cargar documentos", 'error');
     }
   }
 
@@ -199,127 +202,169 @@
   <div class="main-content">
     <h2 class="title">Administrar Perfil</h2>
 
-    <div class="grid-layout">
-      <!-- COLUMNA 1: FORMULARIO DE USUARIO -->
-      <div class="box user-box">
-        <h3 class="box-title">Datos Personales</h3>
-
-        <div class="form-group">
-          <label for="pNombre">Primer Nombre</label>
-          <input id="pNombre" bind:value={primer_nombre} type="text" />
-        </div>
-
-        <div class="form-group">
-          <label for="sNombre">Segundo Nombre</label>
-          <input id="sNombre" bind:value={segundo_nombre} type="text" />
-        </div>
-
-        <div class="form-group">
-          <label for="pApellido">Primer Apellido</label>
-          <input id="pApellido" bind:value={primer_apellido} type="text" />
-        </div>
-
-        <div class="form-group">
-          <label for="sApellido">Segundo Apellido</label>
-          <input id="sApellido" bind:value={segundo_apellido} type="text" />
-        </div>
-
-        <div class="form-group">
-          <label for="telefono">Teléfono</label>
-          <input id="telefono" bind:value={telefono} type="text" />
-        </div>
-
-        <button class="btn btn-primary" on:click={actualizarUsuario}>
-          <i class="fas fa-save"></i> Actualizar Datos
-        </button>
-      </div>
-
-      <!-- COLUMNA 2: REGISTRAR DOCUMENTO -->
-      <div class="box document-form-box">
-        <h3 class="box-title">Registrar Nuevo Documento</h3>
-
-        <div class="form-group">
-          <label for="tipoDoc">Tipo Documento</label>
-          <select id="tipoDoc" bind:value={id_tdocumento}>
-            <option value="">Seleccione...</option>
-            {#each tiposDoc as t}
-              <option value={t.id_tdocumento}>{t.nombre}</option>
-            {/each}
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label for="numDoc">Número de Documento</label>
-          <input id="numDoc" bind:value={numero_documento} type="text" />
-        </div>
-
-        <div class="form-group">
-          <label for="lugarExp">Lugar de expedición</label>
-          <input id="lugarExp" bind:value={lugar_expedicion} type="text" />
-        </div>
-
-        <div class="form-group">
-          <label for="estadoDoc">Estado (Activo por defecto)</label>
-          <select id="estadoDoc" bind:value={estado_doc}>
-            <option value={1}>Activo</option>
-            <option value={0}>Inactivo</option>
-          </select>
-        </div>
-
-        <button class="btn btn-secondary" on:click={crearDocumento}>
-          <i class="fas fa-file-alt"></i> Guardar Documento
-        </button>
-      </div>
+    <!-- INICIO DE LA NAVEGACIÓN POR PESTAÑAS -->
+    <div class="category-tabs">
+      <button
+        class="tab-btn"
+        class:active={currentView === "personales"}
+        on:click={() => (currentView = "personales")}
+      >
+        <i class="fas fa-user-circle"></i> Datos Personales
+      </button>
+      <button
+        class="tab-btn"
+        class:active={currentView === "registro"}
+        on:click={() => (currentView = "registro")}
+      >
+        <i class="fas fa-file-alt"></i> Registrar Nuevo Documento
+      </button>
+      <button
+        class="tab-btn"
+        class:active={currentView === "documentos"}
+        on:click={() => (currentView = "documentos")}
+      >
+        <i class="fas fa-list-check"></i> Mis Documentos Registrados
+      </button>
     </div>
+    <!-- FIN DE LA NAVEGACIÓN POR PESTAÑAS -->
 
-    <!-- TABLA DOCUMENTOS (Ancho completo) -->
-    <div class="box documents-table-box">
-      <h3 class="box-title">Mis Documentos Registrados</h3>
+    <!-- INICIO DE CONTENIDO CONDICIONAL -->
+    <div class="content-display">
+      <!-- 1. VISTA: DATOS PERSONALES -->
+      {#if currentView === "personales"}
+        <div class="box user-box" transition:fly={{ y: 20, duration: 300 }}>
+          <h3 class="box-title">Actualizar Datos Personales</h3>
 
-      {#if documentos.length === 0}
-        <p class="no-data">No hay documentos registrados para tu usuario.</p>
-      {:else}
-        <div class="table-responsive">
-          <table>
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Tipo</th>
-                <th>Número</th>
-                <th>Lugar Expedición</th>
-                <th>Estado</th>
-              </tr>
-            </thead>
+          <div class="form-group">
+            <label for="pNombre">Primer Nombre</label>
+            <input id="pNombre" bind:value={primer_nombre} type="text" />
+          </div>
 
-            <tbody>
-              {#each documentos as d}
-                <tr>
-                  <td>{d.id_documento}</td>
-                  <td>{d.tipo_documento}</td>
-                  <td>{d.numero_documento}</td>
-                  <td>{d.lugar_expedicion}</td>
-                  <td>
-                    <span
-                      class="status-badge status-{d.estado === 1
-                        ? 'active'
-                        : 'inactive'}"
-                    >
-                      {d.estado === 1 ? "Activo" : "Inactivo"}
-                    </span>
-                  </td>
-                </tr>
+          <div class="form-group">
+            <label for="sNombre">Segundo Nombre</label>
+            <input id="sNombre" bind:value={segundo_nombre} type="text" />
+          </div>
+
+          <div class="form-group">
+            <label for="pApellido">Primer Apellido</label>
+            <input id="pApellido" bind:value={primer_apellido} type="text" />
+          </div>
+
+          <div class="form-group">
+            <label for="sApellido">Segundo Apellido</label>
+            <input id="sApellido" bind:value={segundo_apellido} type="text" />
+          </div>
+
+          <div class="form-group">
+            <label for="telefono">Teléfono</label>
+            <input id="telefono" bind:value={telefono} type="text" />
+          </div>
+
+          <button class="btn btn-primary" on:click={actualizarUsuario}>
+            <i class="fas fa-save"></i> Actualizar Datos
+          </button>
+        </div>
+      {/if}
+
+      <!-- 2. VISTA: REGISTRAR DOCUMENTO -->
+      {#if currentView === "registro"}
+        <div
+          class="box document-form-box"
+          transition:fly={{ y: 20, duration: 300 }}
+        >
+          <h3 class="box-title">Registrar Nuevo Documento</h3>
+
+          <div class="form-group">
+            <label for="tipoDoc">Tipo Documento</label>
+            <select id="tipoDoc" bind:value={id_tdocumento}>
+              <option value="">Seleccione...</option>
+              {#each tiposDoc as t}
+                <option value={t.id_tdocumento}>{t.nombre}</option>
               {/each}
-            </tbody>
-          </table>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="numDoc">Número de Documento</label>
+            <input id="numDoc" bind:value={numero_documento} type="text" />
+          </div>
+
+          <div class="form-group">
+            <label for="lugarExp">Lugar de expedición</label>
+            <input id="lugarExp" bind:value={lugar_expedicion} type="text" />
+          </div>
+
+          <div class="form-group">
+            <label for="estadoDoc">Estado (Activo por defecto)</label>
+            <select id="estadoDoc" bind:value={estado_doc}>
+              <option value={1}>Activo</option>
+              <option value={0}>Inactivo</option>
+            </select>
+          </div>
+
+          <button class="btn btn-secondary" on:click={crearDocumento}>
+            <i class="fas fa-file-alt"></i> Guardar Documento
+          </button>
+        </div>
+      {/if}
+
+      <!-- 3. VISTA: DOCUMENTOS REGISTRADOS (TABLA) -->
+      {#if currentView === "documentos"}
+        <div
+          class="box documents-table-box"
+          transition:fly={{ y: 20, duration: 300 }}
+        >
+          <h3 class="box-title">Mis Documentos Registrados</h3>
+
+          {#if documentos.length === 0}
+            <p class="no-data">
+              No hay documentos registrados para tu usuario.
+            </p>
+          {:else}
+            <div class="table-responsive">
+              <table>
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Tipo</th>
+                    <th>Número</th>
+                    <th>Lugar Expedición</th>
+                    <th>Estado</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {#each documentos as d}
+                    <tr>
+                      <td class="highlight">{d.id_documento}</td>
+                      <td>{d.tipo_documento}</td>
+                      <td>{d.numero_documento}</td>
+                      <td>{d.lugar_expedicion}</td>
+                      <td>
+                        <span
+                          class="status-badge status-{d.estado === 1
+                            ? 'active'
+                            : 'inactive'}"
+                        >
+                          {d.estado === 1 ? "Activo" : "Inactivo"}
+                        </span>
+                      </td>
+                    </tr>
+                  {/each}
+                </tbody>
+              </table>
+            </div>
+          {/if}
         </div>
       {/if}
     </div>
+    <!-- FIN DE CONTENIDO CONDICIONAL -->
   </div>
 </section>
 
 <Footer />
 
-<!-- Notificación Flotante (Fuera del main-container para asegurar position: fixed) -->
+<!-- Notificación Flotante -->
 {#if notificationText}
   <div
     class="floating-notification {notificationType}"
@@ -348,16 +393,13 @@
     --color-success-light: #dcfce7; /* Fondo claro para éxito (Nuevo) */
     --color-danger: #b91c1c; /* Rojo oscuro para error */
     --color-danger-light: #fee2e2; /* Fondo claro para error (Nuevo) */
-    /* --color-success-bg: rgba(52, 211, 153, 0.15); // Eliminado */
-    /* --color-danger-bg: rgba(239, 68, 68, 0.15); // Eliminado */
+    --color-neutral: #94a3b8; /* Gris neutro */
   }
 
-  /* Nuevo: Reset global para eliminar el scroll horizontal no deseado */
   :global(html) {
     background: var(--color-dark);
     box-sizing: border-box;
     width: 100%;
-    /* FIX CLAVE: Oculta el scroll horizontal en la raíz */
     overflow-x: hidden;
   }
 
@@ -366,9 +408,7 @@
     padding: 0;
     min-height: 100vh;
     width: 100%;
-    /* FIX CLAVE: Fuente para herencia en el footer */
     font-family: "Inter", sans-serif;
-    /* FIX CLAVE: Oculta el scroll horizontal en el cuerpo */
     overflow-x: hidden;
   }
 
@@ -396,53 +436,59 @@
   }
 
   /* ---------------------------------- */
-  /* NOTIFICACIÓN FLOTANTE (ESTILOS CORREGIDOS) */
+  /* LAYOUT Y PESTAÑAS (TABS) - NUEVO */
   /* ---------------------------------- */
-  .floating-notification {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    padding: 15px 20px;
+  .category-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 40px; /* Margen antes del contenido */
+    flex-wrap: wrap;
+  }
+
+  .tab-btn {
+    padding: 12px 20px;
+    border: 2px solid var(--color-dark);
     border-radius: 8px;
+    background-color: #111827; /* Fondo de botón no activo */
+    color: var(--color-neutral);
     font-weight: 600;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-    max-width: 300px;
-    z-index: 1000;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
     display: flex;
     align-items: center;
-    gap: 10px;
-    /* Añadido contraste de texto general */
-    color: var(--color-dark);
+    gap: 8px;
+    font-size: 1rem;
   }
 
-  /* Estilos corregidos para Éxito */
-  .floating-notification.success {
-    background: var(--color-success); /* Fondo muy claro */
-    color: var(--color-success-light); /* Texto verde oscuro */
-    border: 1px solid var(--color-success);
+  .tab-btn:hover {
+    background-color: #2a3547; /* Un poco más claro en hover */
+    color: var(--color-text-light);
+    transform: translateY(-2px); /* Pequeño levantamiento en hover */
   }
 
-  /* Estilos corregidos para Error */
-  .floating-notification.error {
-    background: var(--color-danger); /* Fondo muy claro */
-    color: var(--color-danger-light); /* Texto rojo oscuro */
-    border: 1px solid var(--color-danger);
+  .tab-btn.active {
+    border-color: var(--color-primary);
+    background-color: var(--color-primary);
+    color: var(--color-text-light);
+    /* Sombra azul brillante solicitada */
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.8);
+    transform: translateY(0); /* Evita que el botón activo se levante */
   }
 
-  /* ---------------------------------- */
-  /* LAYOUT (GRID) */
-  /* ---------------------------------- */
-  .grid-layout {
-    display: grid;
-    /* Dos columnas en escritorio */
-    grid-template-columns: 1fr 1fr;
-    gap: 30px;
-    margin-bottom: 35px;
+  .content-display {
+    /* Mantiene el contenido centrado y responsive */
+    max-width: 900px;
+    margin: 0 auto;
+    /* Evita el cambio de layout cuando se pasa de formulario a tabla */
+    min-height: 400px;
   }
 
   /* ---------------------------------- */
   /* CAJAS (BOXES) */
   /* ---------------------------------- */
+  /* Ahora las cajas tienen un ancho máximo en el content-display */
   .box {
     background: var(
       --color-dark
@@ -450,13 +496,14 @@
     padding: 30px;
     border-radius: 12px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-    height: fit-content; /* Se ajusta a su contenido */
+    height: fit-content;
+    margin-bottom: 30px;
   }
 
   .box-title {
     font-size: 1.5rem;
     color: var(--color-secondary);
-    margin-bottom: 20px;
+    margin-bottom: 25px;
     border-bottom: 2px solid var(--color-primary);
     padding-bottom: 10px;
     font-weight: 700;
@@ -502,7 +549,7 @@
   /* BOTONES */
   /* ---------------------------------- */
   .btn {
-    width: 100%;
+    width: 100%; /* El botón se ajusta al ancho del contenedor .box */
     border: none;
     padding: 12px 15px;
     border-radius: 8px;
@@ -542,14 +589,6 @@
     box-shadow: 0 4px 10px rgba(252, 211, 77, 0.4);
   }
 
-  /* Deshabilitar estado */
-  .btn:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    transform: none;
-    box-shadow: none;
-  }
-
   /* ---------------------------------- */
   /* TABLA DE DOCUMENTOS */
   /* ---------------------------------- */
@@ -560,11 +599,11 @@
   table {
     width: 100%;
     border-collapse: separate;
-    border-spacing: 0; /* Elimina el espacio entre bordes */
+    border-spacing: 0;
     margin-top: 15px;
-    background: #111827; /* Fondo de tabla ligeramente diferente */
+    background: #111827;
     border-radius: 8px;
-    overflow: hidden; /* Para que el radio se aplique al borde */
+    overflow: hidden;
   }
 
   th,
@@ -574,34 +613,25 @@
     border-bottom: 1px solid #333;
   }
 
-  th:first-child,
-  td:first-child {
-    padding-left: 20px;
-  }
-  th:last-child,
-  td:last-child {
-    padding-right: 20px;
-  }
-
   th {
     background: var(--color-primary);
     color: white;
     font-weight: 600;
     text-transform: uppercase;
     font-size: 0.8rem;
-    letter-spacing: 0.5px;
-  }
-
-  tbody tr {
-    transition: background 0.3s;
   }
 
   tbody tr:nth-child(even) {
-    background: #1f2937; /* Raya para mejor legibilidad */
+    background: #1f2937;
   }
 
   tbody tr:hover {
     background: #253347;
+  }
+
+  .highlight {
+    color: var(--color-secondary);
+    font-weight: 600;
   }
 
   /* Status Badges */
@@ -613,13 +643,11 @@
   }
 
   .status-active {
-    /* Mantenemos el color fuerte en el texto del badge */
     background: var(--color-success);
     color: white;
   }
 
   .status-inactive {
-    /* Mantenemos el color fuerte en el texto del badge */
     background: var(--color-danger);
     color: white;
   }
@@ -628,22 +656,56 @@
     text-align: center;
     padding: 15px;
     font-style: italic;
-    color: #9ca3af;
+    color: var(--color-neutral);
+  }
+
+  /* ---------------------------------- */
+  /* NOTIFICACIÓN FLOTANTE */
+  /* ---------------------------------- */
+  .floating-notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 15px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    max-width: 300px;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--color-dark);
+  }
+
+  .floating-notification.success {
+    background: var(--color-success);
+    color: var(--color-success-light);
+    border: 1px solid var(--color-success);
+  }
+
+  .floating-notification.error {
+    background: var(--color-danger);
+    color: var(--color-danger-light);
+    border: 1px solid var(--color-danger);
   }
 
   /* ---------------------------------- */
   /* RESPONSIVIDAD */
   /* ---------------------------------- */
-  @media (max-width: 900px) {
-    .grid-layout {
-      /* Una sola columna en tablet y móvil */
-      grid-template-columns: 1fr;
-    }
-  }
-
-  @media (max-width: 600px) {
+  @media (max-width: 768px) {
     .main-container {
       padding: 20px 10px;
+    }
+
+    .category-tabs {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .tab-btn {
+      width: 100%;
+      font-size: 0.9rem;
     }
 
     .box {
@@ -657,10 +719,11 @@
     /* Ajuste para notificaciones en móvil */
     .floating-notification {
       top: 10px;
-      bottom: auto; /* Asegurar que no esté anclado al fondo */
       left: 10px;
       right: 10px;
       max-width: none;
+      text-align: center;
+      justify-content: center;
     }
   }
 </style>
