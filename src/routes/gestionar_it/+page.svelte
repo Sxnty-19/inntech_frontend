@@ -880,24 +880,33 @@
 
   /* Botón de alternar (Crear/Cancelar) */
   .btn-toggle {
-    background: #3b82f6; /* primary-blue */
-    padding: 10px 14px;
-    border-radius: 8px;
-    color: white;
+    background: var(--color-accent-gold);
+    color: #111;
     border: none;
+    padding: 14px 25px;
+    border-radius: 8px;
+    font-weight: 800;
     cursor: pointer;
-    font-weight: bold;
     transition:
-      background-color 0.3s,
-      transform 0.1s;
-    box-shadow: var(--shadow-btn-toggle);
+      background 0.3s,
+      transform 0.1s,
+      box-shadow 0.3s;
+    font-size: 1rem;
+    box-shadow: var(--shadow-btn);
+  }
+  .btn-toggle:hover:not(:disabled) {
+    background: #ffaa2b;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(252, 211, 77, 0.5);
   }
 
-  .btn-toggle:hover {
-    background: #60a5fa; /* Azul más claro al pasar el ratón */
-    transform: translateY(-1px);
+  .btn-toggle:disabled {
+    background: var(--color-border);
+    color: var(--color-text-muted);
+    cursor: not-allowed;
+    opacity: 0.7;
+    box-shadow: none;
   }
-
   /* ---------------------------------- */
   /* Formulario */
   /* ---------------------------------- */
