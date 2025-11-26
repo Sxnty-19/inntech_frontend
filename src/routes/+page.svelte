@@ -280,10 +280,6 @@
     /* ---------------------------------- */
     /* HERO SECTION */
     /* ---------------------------------- */
-    /* (Se mantienen los estilos de HERO) */
-    /* ---------------------------------- */
-    /* HERO SECTION */
-    /* ---------------------------------- */
     section.hero {
         min-height: 100vh;
         background: var(--color-dark);
@@ -294,22 +290,17 @@
         );
         color: white;
         display: flex;
-        /* Centra el contenido (el bloque .content) tanto vertical como horizontalmente */
-        align-items: center; /* Centrado vertical */
-        justify-content: center; /* Centrado horizontal */
-        padding: 120px 20px 60px; /* Padding general */
+        align-items: center;
+        justify-content: center;
+        padding: 120px 20px 60px;
     }
 
     .content {
-        max-width: 800px; /* Ancho máximo para el contenido */
-        width: 100%; /* Asegura que ocupe todo el ancho disponible hasta max-width */
-
-        /* Esta es la propiedad CLAVE para que el logo y el texto se alineen a la izquierda dentro de este bloque */
-        text-align: left;
-
-        padding-left: 20px; /* Espacio a la izquierda para que no se pegue al borde */
-        padding-right: 20px; /* Espacio a la derecha */
-
+        max-width: 800px;
+        width: 100%;
+        text-align: center;
+        padding-left: 20px;
+        padding-right: 20px;
         opacity: 0;
         animation: fadeIn 1.2s ease-out 0.2s forwards;
     }
@@ -327,7 +318,7 @@
 
     .hero-logo {
         display: block;
-        margin: 0 auto 15px auto; /* Centra horizontalmente el logo */
+        margin: 0 auto 15px auto;
         width: 150px;
         opacity: 0.8;
     }
