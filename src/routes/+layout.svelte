@@ -5,6 +5,8 @@
 </script>
 
 <svelte:head>
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+
 	<link rel="icon" href={favicon} />
 	<link
 		rel="stylesheet"
@@ -14,23 +16,62 @@
 		referrerpolicy="no-referrer"
 	/>
 	<title>H. Santadereano Del Sur</title>
+
+	<link
+		href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap"
+		rel="stylesheet"
+	/>
 </svelte:head>
 
 {@render children()}
 
 <style>
 	/* ---------------------------------- */
-	/* RESET GLOBAL: FIX BORDE BLANCO Y FUENTE FOOTER */
+	/* DEFINICIÓN DE PALETA DE COLORES (Variables CSS) */
 	/* ---------------------------------- */
+	:global(:root) {
+		/* Variables definidas en tu CSS anterior */
+		--color-bg-primary: #0f172a;
+		--color-table-bg: #1a202c;
+		--color-accent-gold: #fcd34d;
+		--color-text-light: #e2e8f0;
+		/* Puedes añadir aquí todas las variables que uses comúnmente */
+	}
+
+	/* ---------------------------------- */
+	/* RESET GLOBAL Y REGLAS DE RESPONSIVIDAD BASE */
+	/* ---------------------------------- */
+	:global(html) {
+		/* Tamaño de fuente base responsive (opcional) */
+		font-size: 16px;
+	}
+
 	:global(html),
 	:global(body) {
-		/* 1. ELIMINA EL BORDE BLANCO */
+		/* 1. MODELO DE CAJA GLOBAL (Clave para evitar desbordamientos) */
 		margin: 0;
 		padding: 0;
+		/* box-sizing: border-box es CRUCIAL para que padding y borde no sumen al width */
 		box-sizing: border-box;
-		/* 2. ASEGURA LA FUENTE EN TODO EL DOCUMENTO (Incluido Footer) */
+
+		/* 2. TIPOGRAFÍA Y ALTURA MÍNIMA */
 		font-family: "Inter", sans-serif;
-		/* 3. FONDO GLOBAL PARA EVITAR BORDES BLANCOS VISIBLES */
 		background-color: var(--color-bg-primary);
+		min-height: 100vh; /* Asegura que el cuerpo ocupe al menos toda la altura de la vista */
+	}
+
+	/* 3. Evita el desbordamiento horizontal accidental en todos los elementos */
+	:global(*) {
+		box-sizing: border-box;
+	}
+
+	/* 4. CLAVES PARA RESPONSIVIDAD GENERAL */
+	:global(img),
+	:global(video),
+	:global(picture) {
+		/* Asegura que las imágenes nunca se salgan de su contenedor */
+		max-width: 100%;
+		height: auto;
+		display: block; /* Elimina espacio extra bajo las imágenes */
 	}
 </style>
