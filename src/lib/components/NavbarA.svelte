@@ -152,14 +152,13 @@
         display: flex;
         align-items: center;
         position: sticky;
-        top: 65px; /* Altura aproximada del Navbar principal */
+        top: 65px;
         z-index: 49;
         box-shadow:
             0 4px 6px -1px rgba(0, 0, 0, 0.1),
             0 2px 4px -2px rgba(0, 0, 0, 0.1);
         font-family: "Inter", sans-serif;
         box-sizing: border-box;
-        overflow-x: hidden;
     }
 
     .nav-wrapper {
@@ -353,10 +352,6 @@
             background: var(--color-mid-dark);
             border-radius: 0 0 8px 8px;
             box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
-            position: absolute; /* CLAVE: Posición absoluta bajo el botón de toggle */
-            top: 100%; /* Debajo del nav-wrapper (que incluye el toggle) */
-            left: 0;
-            z-index: 50;
         }
 
         .mod-buttons-container.open {
