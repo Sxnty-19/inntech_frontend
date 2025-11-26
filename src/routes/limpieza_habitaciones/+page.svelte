@@ -1,12 +1,9 @@
 <script>
   import { onMount } from "svelte";
+  // NOTA: Asumimos que estos componentes existen y se importan correctamente.
   import Navbar from "$lib/components/Navbar.svelte";
   import NavbarA from "$lib/components/NavbarA.svelte";
   import Footer from "$lib/components/Footer.svelte";
-
-  // Se eliminan las importaciones de Font Awesome que causaban el error.
-  // import { library } from '@fortawesome/fontawesome-svg-core';
-  // import { faCheckCircle, faBroom } from '@fortawesome/free-solid-svg-icons';
 
   const API = "https://inntech-backend.onrender.com/habitaciones";
 
@@ -14,7 +11,7 @@
   let loading = true;
   let error = null;
 
-  // NUEVAS VARIABLES PARA EL SISTEMA DE NOTIFICACIÓN
+  // SISTEMA DE NOTIFICACIÓN
   let message = "";
   let isSuccess = false;
   let showMessage = false;
@@ -76,7 +73,6 @@
 
       if (!data.success) {
         console.error("Error del servidor al actualizar:", data.detail);
-        // Notificación de error del servidor
         showNotification(
           `Error al marcar habitación ${numero}: ${data.detail || "Fallo desconocido."}`,
           false,
@@ -88,7 +84,7 @@
       // Actualizar visualmente y reordenar
       habitaciones = habitaciones
         .map((h) => (h.numero === numero ? { ...h, estado: 1 } : h))
-        .sort((a, b) => a.estado - b.estado); // Reordenar para que las sucias sigan arriba
+        .sort((a, b) => a.estado - b.estado);
 
       // Notificación de éxito
       showNotification(
@@ -98,7 +94,6 @@
       );
     } catch (e) {
       console.error("Error de conexión al marcar como limpia:", e);
-      // Notificación de error de conexión
       showNotification(
         "Error de conexión. Inténtalo de nuevo más tarde.",
         false,
@@ -112,7 +107,7 @@
   });
 </script>
 
-<!-- Se necesita Font Awesome para los iconos (Check, Error) -->
+<!-- Se necesita Font Awesome para los iconos (Check, Error, Broom) -->
 <svelte:head>
   <link
     rel="stylesheet"
@@ -141,46 +136,52 @@
         <p class="message error-msg">{error}</p>
       {:else if habitaciones.length === 0}
         <p class="message subtext">
-          No hay habitaciones registradas en el sistema.
+          <i class="fas fa-info-circle"></i> No hay habitaciones registradas en el
+          sistema.
         </p>
       {:else}
-        <!-- El scroll vertical se aplica aquí -->
         <div class="table-wrap">
           <table class="tabla">
             <thead>
               <tr>
-                <th class="w-1/12">Número</th>
-                <th class="w-3/12">Tipo</th>
-                <th class="w-4/12">Estado</th>
-                <th class="w-4/12">Acción</th>
+                <th class="w-1/12 col-numero">Número</th>
+                <th class="w-3/12 col-tipo">Tipo</th>
+                <th class="w-4/12 col-estado">Estado</th>
+                <th class="w-4/12 col-accion">Acción</th>
               </tr>
             </thead>
             <tbody>
               {#each habitaciones as h (h.numero)}
+                <!-- row-dirty aplica estilos a la fila de habitaciones sucias -->
                 <tr class:row-dirty={h.estado === 0}>
-                  <td class="highlight">{h.numero}</td>
-                  <td>{h.id_thabitacion}</td>
+                  <td class="highlight" data-label="Número">{h.numero}</td>
+                  <td data-label="Tipo">{h.id_thabitacion}</td>
 
-                  <td>
+                  <td data-label="Estado">
                     {#if h.estado === 1}
-                      <span class="status-badge estado-limpia"> Limpia </span>
+                      <!-- CLASE ACTUALIZADA: .estado en lugar de .status-badge -->
+                      <span class="estado estado-limpia">
+                        <i class="fas fa-check-circle"></i> Limpia
+                      </span>
                     {:else}
-                      <span class="status-badge estado-sucia">
-                        Necesita limpieza
+                      <!-- CLASE ACTUALIZADA: .estado en lugar de .status-badge -->
+                      <span class="estado estado-sucia">
+                        <i class="fas fa-broom"></i> Sucia
                       </span>
                     {/if}
                   </td>
 
-                  <td>
+                  <td data-label="Acción">
                     {#if h.estado === 0}
+                      <!-- CLASE ACTUALIZADA: Usando el estilo btn-toggle-clean para el botón de limpiar -->
                       <button
-                        class="btn-limpiar"
+                        class="btn-toggle btn-toggle-clean"
                         on:click={() => marcarLimpia(h.numero)}
                       >
-                        Marcar como Limpia
+                        <i class="fas fa-magic"></i> Marcar como lista
                       </button>
                     {:else}
-                      <span class="ok">✅</span>
+                      <span class="ok">Habitación lista</span>
                     {/if}
                   </td>
                 </tr>
@@ -195,12 +196,10 @@
 
 <Footer />
 
-<!-- Notificación Personalizada (Copiada del Login) -->
+<!-- Notificación Personalizada -->
 {#if showMessage}
   <div class="message-modal">
-    <!-- Animación de rebote aplicada en message-content -->
     <div class="message-content" class:success={isSuccess}>
-      <!-- Iconos dinámicos según el estado -->
       <i
         class="fas"
         class:fa-check-circle={isSuccess}
@@ -216,16 +215,21 @@
   /* Variables y Resets Globales del Tema Oscuro */
   /* ============================================== */
   :root {
-    --color-dark: #0f172a; /* Fondo principal de Nav/Footer y Card */
-    --color-body-bg: #1a202c; /* Fondo del contenido */
+    --color-dark: #0f172a; /* Fondo principal de Nav/Footer y Card (slate-900) */
+    --color-body-bg: #1a202c; /* Fondo del contenido (gray-900) */
     --color-primary: #1e3a8a; /* Azul principal (Botones, Headings) */
     --color-secondary: #fcd34d; /* Amarillo/Naranja de acento (Títulos) */
-    --color-text: #e2e8f0; /* Texto claro */
-    --color-success: #10b981; /* Verde para estado Limpia */
-    --color-danger: #ef4444; /* Rojo para errores */
-    --color-warning: #f59e0b; /* Naranja para estado Sucia (Mejor que rojo puro para alerta) */
-    --color-neutral: #94a3b8; /* Gris neutro */
-    --color-table-row-hover: #1e293b; /* Gris oscuro para hover */
+    --color-text: #e2e8f0; /* Texto claro (slate-200) */
+    --color-danger: #ef4444; /* Rojo para errores (red-500) */
+    --color-neutral: #94a3b8; /* Gris neutro (slate-400) */
+    --color-table-row-hover: #1e293b; /* Gris oscuro para hover (slate-800) */
+    --color-border: #334155; /* Borde sutil (slate-700) */
+
+    /* NUEVAS VARIABLES para los estados y botones */
+    --color-clean: #10b981; /* Verde esmeralda para Limpia (emerald-500) */
+    --color-dirty: #ef4444; /* Rojo para Sucia (red-500) */
+    --color-toggle-clean-bg: #2563eb; /* Azul para el botón de Limpiar */
+    --color-toggle-dirty-bg: #facc15; /* Amarillo para el botón de Sucia (no usado aquí, pero definido) */
 
     /* Variables de color para el Scrollbar */
     --scrollbar-track: #2d3748;
@@ -236,6 +240,7 @@
   :global(body),
   :global(html) {
     background-color: var(--color-body-bg);
+    font-family: "Inter", sans-serif;
   }
 
   /* ---------------------------------- */
@@ -272,7 +277,7 @@
   }
 
   .main-content {
-    max-width: 1200px;
+    max-width: 1000px;
     margin: 0 auto;
   }
 
@@ -302,13 +307,17 @@
     padding: 30px;
     border-radius: 12px;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--color-border);
   }
 
   .subtext {
     color: var(--color-neutral);
     text-align: center;
     padding: 15px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
   }
 
   .message {
@@ -329,24 +338,18 @@
   /* ---------------------------------- */
   .table-wrap {
     overflow-x: auto;
-    /* --- CAMBIOS PARA SCROLL VERTICAL --- */
-    max-height: 60vh; /* Altura máxima para que el contenido no se extienda demasiado */
-    overflow-y: auto; /* Habilitar scroll vertical cuando sea necesario */
-    border: 1px solid #334155; /* Borde sutil para delimitar el área de scroll */
+    max-height: 65vh;
+    overflow-y: auto;
+    border: 1px solid var(--color-border);
     border-radius: 8px;
-    /* ---------------------------------- */
   }
 
   .tabla {
     width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
+    min-width: 600px;
+    border-collapse: collapse;
     background: transparent;
     color: var(--color-text);
-  }
-
-  .tabla thead {
-    overflow: hidden;
   }
 
   .tabla th {
@@ -357,88 +360,128 @@
     font-weight: 700;
     text-transform: uppercase;
     font-size: 0.85rem;
-
-    /* --- CAMBIOS PARA CABECERA FIJA --- */
     position: sticky;
-    top: 0; /* Fija la cabecera en la parte superior del .table-wrap */
+    top: 0;
     z-index: 10;
-    /* ---------------------------------- */
+  }
+
+  .tabla thead tr:first-child th:first-child {
+    border-top-left-radius: 8px;
+  }
+  .tabla thead tr:first-child th:last-child {
+    border-top-right-radius: 8px;
   }
 
   .tabla td {
     padding: 12px 15px;
-    border-bottom: 1px solid #334155; /* Separador oscuro */
+    border-bottom: 1px solid #334155;
     vertical-align: middle;
+  }
+
+  .tabla tbody tr:last-child td {
+    border-bottom: none;
   }
 
   .tabla tbody tr:hover td {
     background: var(--color-table-row-hover);
   }
 
-  /* Destacar la fila sucia para atención inmediata */
+  /* Destacar la fila sucia para atención inmediata (usa color de sucio/rojo) */
   .row-dirty {
-    background: rgba(245, 158, 11, 0.05); /* Sombra muy sutil para las sucias */
+    background: rgba(239, 68, 68, 0.05);
   }
   .row-dirty:hover td {
-    background: rgba(245, 158, 11, 0.1);
+    background: rgba(239, 68, 68, 0.1);
   }
 
   .highlight {
-    color: var(--color-secondary);
+    color: var(--color-text);
     font-weight: 700;
   }
 
+  .col-numero {
+    width: 10%;
+  }
+  .col-tipo {
+    width: 30%;
+  }
+  .col-estado {
+    width: 30%;
+  }
+  .col-accion {
+    width: 30%;
+  }
+
   /* ---------------------------------- */
-  /* STATUS BADGES */
+  /* ESTILOS DE ESTADO (NUEVOS) */
   /* ---------------------------------- */
-  .status-badge {
-    padding: 6px 10px;
-    border-radius: 6px;
-    font-weight: 600;
-    font-size: 0.9rem;
-    display: inline-flex;
+  .estado {
+    padding: 6px 12px;
+    border-radius: 20px; /* Borde más redondeado/Pill shape */
+    font-weight: 700;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    display: inline-flex; /* Usar flex para alinear icono y texto */
     align-items: center;
-    gap: 6px;
+    gap: 5px;
   }
 
   .estado-limpia {
-    color: var(--color-success);
-    background: rgba(16, 185, 129, 0.15);
-    border: 1px solid var(--color-success);
+    /* Fondo verde claro, texto verde oscuro */
+    background: rgba(16, 185, 129, 0.2);
+    color: var(--color-clean);
   }
 
   .estado-sucia {
-    color: var(--color-warning); /* Usamos naranja para 'Necesita limpieza' */
-    background: rgba(245, 158, 11, 0.15);
-    border: 1px solid var(--color-warning);
+    /* Fondo rojo claro, texto rojo oscuro */
+    background: rgba(239, 68, 68, 0.2);
+    color: var(--color-dirty);
   }
 
   /* ---------------------------------- */
-  /* BOTÓN Y ÉXITO */
+  /* BOTÓN DE ACCIÓN (NUEVO ESTILO DE TOGGLE) */
   /* ---------------------------------- */
-  .btn-limpiar {
-    background: var(--color-primary);
-    color: white;
+  .btn-toggle {
     border: none;
     padding: 8px 15px;
+    cursor: pointer;
     border-radius: 6px;
     font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
     font-size: 0.9rem;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
   }
 
-  .btn-limpiar:hover {
-    background: #102a65;
+  /* Usamos el estilo 'clean' para el botón de Marcar Limpio */
+  .btn-toggle-clean {
+    background: var(--color-primary);
+    color: white;
+  }
+
+  .btn-toggle-clean:hover {
+    background: #1d4ed8; /* Azul oscuro */
     transform: translateY(-1px);
-    box-shadow: 0 4px 10px rgba(30, 58, 138, 0.4);
+    box-shadow: 0 4px 8px rgba(37, 99, 235, 0.5);
+  }
+
+  /* Este estilo no se usa en esta vista, pero se deja definido por si se necesita */
+  .btn-toggle-dirty {
+    background: var(--color-toggle-dirty-bg);
+    color: #111; /* Color de texto oscuro para fondo claro */
+  }
+
+  .btn-toggle-dirty:hover {
+    background: #eab308; /* Amarillo oscuro */
   }
 
   .ok {
-    color: var(--color-success);
-    font-size: 1.5rem;
-    font-weight: bold;
+    color: var(--color-neutral);
+    font-weight: 600;
+    font-size: 0.95rem;
   }
 
   /* ---------------------------------- */
@@ -477,6 +520,7 @@
     right: 20px;
     z-index: 1000;
     animation: slideIn 0.5s forwards;
+    pointer-events: none;
   }
 
   .message-content {
@@ -488,15 +532,16 @@
     align-items: center;
     gap: 15px;
     font-weight: 600;
-    animation: bounce 0.5s ease-out; /* Animación de rebote al aparecer */
+    animation: bounce 0.5s ease-out;
+    pointer-events: auto;
   }
 
   /* Clase para mensajes de éxito */
   .message-content.success {
-    background-color: var(--color-success);
+    background-color: var(--color-clean); /* Usa el color verde de 'clean' */
   }
 
-  /* Clase para mensajes de error/información (usa el color de peligro del tema oscuro) */
+  /* Clase para mensajes de error/información */
   .message-content:not(.success) {
     background-color: var(--color-danger);
   }
@@ -516,7 +561,6 @@
     }
   }
 
-  /* Animación de rebote para el modal */
   @keyframes bounce {
     0%,
     100% {
@@ -528,17 +572,11 @@
     40% {
       transform: translateY(0);
     }
-    60% {
-      transform: translateY(-2px);
-    }
-    80% {
-      transform: translateY(0);
-    }
   }
   /* FIN ESTILOS DEL MENSAJE PERSONALIZADO */
 
   /* ---------------------------------- */
-  /* RESPONSIVIDAD */
+  /* RESPONSIVIDAD (Móvil) */
   /* ---------------------------------- */
   @media (max-width: 768px) {
     .main-container {
@@ -549,10 +587,58 @@
       padding: 15px;
     }
 
-    .tabla th,
+    .tabla {
+      min-width: 450px;
+    }
+
+    .tabla thead {
+      display: none;
+    }
+
+    .tabla,
+    .tabla tbody,
+    .tabla tr,
     .tabla td {
-      padding: 10px;
-      font-size: 0.9rem;
+      display: block;
+      width: 100%;
+    }
+
+    .tabla tr {
+      margin-bottom: 15px;
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      overflow: hidden;
+      background: var(--color-dark);
+    }
+
+    .tabla td {
+      border: none;
+      border-bottom: 1px solid var(--color-border);
+      text-align: right;
+      padding-left: 50%;
+      position: relative;
+    }
+
+    .tabla td:last-child {
+      border-bottom: 0;
+      text-align: center;
+      padding-left: 10px;
+    }
+
+    .tabla td::before {
+      content: attr(data-label);
+      position: absolute;
+      left: 10px;
+      width: calc(50% - 20px);
+      padding-right: 10px;
+      white-space: nowrap;
+      font-weight: 700;
+      color: var(--color-secondary);
+      text-align: left;
+    }
+
+    .btn-toggle {
+      width: 100%;
     }
   }
 </style>
