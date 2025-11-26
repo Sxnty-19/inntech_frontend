@@ -793,6 +793,7 @@
 
   .card-table {
     overflow: hidden;
+    justify-content: center;
   }
 
   .card-subtitle {
@@ -851,16 +852,12 @@
   /* ---------------------------------- */
   /* Tabla de Roles */
   /* ---------------------------------- */
-  .table-wrap {
+  .table-wrap::-webkit-scrollbar {
     overflow-x: auto;
     max-height: 70vh;
     overflow-y: auto;
   }
 
-  .table-wrap::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-  }
   .table-wrap::-webkit-scrollbar-track {
     background: var(--scrollbar-track);
   }
@@ -871,10 +868,21 @@
   .table-wrap::-webkit-scrollbar-thumb:hover {
     background: var(--scrollbar-thumb-hover);
   }
+  /* Tabla de Historial (Diseño Responsivo y Elegante) */
+  .table-wrap {
+    overflow-x: auto;
+    /* Scroll vertical es para esta caja, que está contenida */
+    max-height: 70vh;
+    overflow-y: auto;
+    border: 1px solid #334155; /* Este es el borde explícito alrededor del área de scroll */
+    border-radius: 8px;
+    margin: 0 auto; /* Centrar el contenedor de scroll */
+    max-width: 100%; /* El ancho máximo es el de la tarjeta */
+  }
 
   .tabla {
     width: 100%;
-    min-width: 900px;
+    min-width: 100%;
     border-collapse: collapse;
     background: var(--color-table-bg);
   }
@@ -894,7 +902,7 @@
   }
 
   .tabla td {
-    padding: 14px 15px;
+    padding: 12px 15px;
     border-bottom: 1px solid var(--color-border);
     font-size: 0.95rem;
     color: var(--color-text-light);
@@ -1199,7 +1207,7 @@
   .loading-container-bar {
     width: 95%; /* Ocupa el 95% del ancho de la celda */
     margin: 0 auto; /* Centrar horizontalmente */
-    height: 5px;
+    height: px;
     background-color: var(--color-border);
     border-radius: 5px;
     overflow: hidden;
