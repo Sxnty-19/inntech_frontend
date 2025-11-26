@@ -909,11 +909,6 @@
 
   /* Se ha eliminado la clase .pending-row */
 
-  .resaltado {
-    color: var(--color-accent-gold);
-    font-weight: 700;
-  }
-
   /* Estilos de Estado */
   .estado {
     padding: 6px 12px;
