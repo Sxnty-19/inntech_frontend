@@ -638,7 +638,7 @@
     /* FONDOS ACTUALIZADOS */
     /* ---------------------------------------------------- */
     --color-bg-primary: #1a202c; /* FONDO PRINCIPAL: Coincide con NavbarA */
-    --color-bg-card: #2d3748; /* FONDO DE TARJETA PRINCIPAL: Ligeramente más claro que el fondo para destacar */
+    --color-bg-card: #1a202c; /* FONDO DE TARJETA PRINCIPAL: Ligeramente más claro que el fondo para destacar */
     --color-bg-box: #0f172a; /* NUEVO FONDO DE CAJA DE FORMULARIO (Darkest Blue/Slate) */
     /* ---------------------------------------------------- */
     --color-table-bg: #111827; /* Fondo de tabla muy oscuro */
@@ -661,7 +661,7 @@
 
   /* Contenedor principal */
   .main-container {
-    background: var(--color-bg-primary);
+    background: var(--color-bg-card);
     min-height: calc(100vh - 160px);
     padding: 40px 20px;
   }
@@ -1227,7 +1227,7 @@
   }
 
   .custom-modal-content {
-    background: var(--color-bg-card);
+    background: var(--color-bg-box);
     padding: 30px;
     border-radius: 12px;
     max-width: 450px;
@@ -1241,10 +1241,10 @@
   }
 
   .modal-title {
-    color: var(--color-danger);
+    color: var(--color-accent);
     font-size: 1.5rem;
     margin-bottom: 15px;
-    border-bottom: 2px solid var(--color-border);
+    border-bottom: 2px solid var(--color-accent);
     padding-bottom: 10px;
   }
 

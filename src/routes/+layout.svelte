@@ -31,8 +31,8 @@
 	/* ---------------------------------- */
 	:global(:root) {
 		/* Variables definidas en tu CSS anterior */
-		--color-bg-primary: #0f172a;
-		--color-table-bg: #1a202c;
+		--color-bg-primary: #1a202c;
+		--color-table-bg: #0f172a;
 		--color-accent-gold: #fcd34d;
 		--color-text-light: #e2e8f0;
 		/* Puedes añadir aquí todas las variables que uses comúnmente */
