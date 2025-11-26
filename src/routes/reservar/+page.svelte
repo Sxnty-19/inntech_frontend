@@ -1225,7 +1225,7 @@
   }
 
   .custom-modal-content {
-    background: var(--color-bg-card);
+    background: var(--color-bg-box);
     padding: 30px;
     border-radius: 12px;
     max-width: 450px;
@@ -1235,11 +1235,11 @@
   }
 
   .modal-title {
-    color: var(--color-danger);
+    color: var(--color-accent);
     font-size: 1.8rem;
     font-weight: 700;
     margin-bottom: 15px;
-    border-bottom: 2px solid var(--color-danger);
+    border-bottom: 2px solid var(--color-accent);
     padding-bottom: 10px;
   }
 

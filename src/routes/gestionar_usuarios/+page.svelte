@@ -804,8 +804,9 @@
   /* ---------------------------------- */
 
   .table-wrap::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+    overflow-x: auto;
+    max-height: 70vh;
+    overflow-y: auto;
   }
 
   .table-wrap::-webkit-scrollbar-track {
@@ -982,20 +983,19 @@
   }
 
   /* ---------------------------------- */
-  /* Animación de Carga (Barra) */
+  /* Indicador de Carga (Solo Barra de Progreso) */
   /* ---------------------------------- */
   .loading-container-bar {
     width: 100%;
-    padding: 20px 0;
     display: flex;
-    justify-content: center;
+    justify-content: center; /* Centrar la barra */
+    padding: 5px 0; /* Espacio para que no se pegue */
   }
 
   .loading-bar {
-    width: 80%;
-    max-width: 400px;
-    height: 4px;
-    background: var(--color-border);
+    width: 80%; /* Ancho de la barra de progreso */
+    height: 5px;
+    background: var(--color-bg-light); /* Fondo estático */
     border-radius: 5px;
     overflow: hidden;
   }
@@ -1004,11 +1004,11 @@
     content: "";
     display: block;
     height: 100%;
-    width: 30%;
+    width: 30%; /* Tamaño visible de la barra animada */
     background: linear-gradient(
       90deg,
-      var(--color-accent-gold),
-      var(--color-accent-blue)
+      var(--color-primary),
+      var(--color-secondary)
     );
     animation: loading-move 1.5s infinite linear;
   }
@@ -1018,10 +1018,9 @@
       transform: translateX(-100%);
     }
     100% {
-      transform: translateX(333%);
+      transform: translateX(333%); /* 100% + 2 veces el ancho para salir */
     }
   }
-
   /* ---------------------------------- */
   /* ESTILOS DEL MENSAJE FLOTANTE (COPIADO DE NOTIFICACIONES) */
   /* ---------------------------------- */
