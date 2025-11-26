@@ -202,8 +202,9 @@
     }
 
     .logo img {
-        height: 30px;
         transition: transform 0.3s ease;
+        width: 50px;
+        height: 50px;
     }
 
     .logo:hover img {
@@ -280,6 +281,9 @@
     /* HERO SECTION */
     /* ---------------------------------- */
     /* (Se mantienen los estilos de HERO) */
+    /* ---------------------------------- */
+    /* HERO SECTION */
+    /* ---------------------------------- */
     section.hero {
         min-height: 100vh;
         background: var(--color-dark);
@@ -290,14 +294,22 @@
         );
         color: white;
         display: flex;
-        align-items: center;
-        justify-content: center;
-        text-align: center;
-        padding: 120px 20px 60px;
+        /* Centra el contenido (el bloque .content) tanto vertical como horizontalmente */
+        align-items: center; /* Centrado vertical */
+        justify-content: center; /* Centrado horizontal */
+        padding: 120px 20px 60px; /* Padding general */
     }
 
     .content {
-        max-width: 800px;
+        max-width: 800px; /* Ancho máximo para el contenido */
+        width: 100%; /* Asegura que ocupe todo el ancho disponible hasta max-width */
+
+        /* Esta es la propiedad CLAVE para que el logo y el texto se alineen a la izquierda dentro de este bloque */
+        text-align: left;
+
+        padding-left: 20px; /* Espacio a la izquierda para que no se pegue al borde */
+        padding-right: 20px; /* Espacio a la derecha */
+
         opacity: 0;
         animation: fadeIn 1.2s ease-out 0.2s forwards;
     }
@@ -314,13 +326,14 @@
     }
 
     .hero-logo {
-        width: 100px;
-        margin-bottom: 15px;
+        display: block;
+        margin: 0 auto 15px auto; /* Centra horizontalmente el logo */
+        width: 150px;
         opacity: 0.8;
     }
 
     h1 {
-        font-size: 3.5rem; /* Más impacto */
+        font-size: 3.5rem;
         font-weight: 900;
         color: var(--color-secondary);
         line-height: 1.1;
@@ -333,7 +346,6 @@
         color: var(--color-text);
         margin-bottom: 30px;
     }
-
     /* ---------------------------------- */
     /* ROOMS SECTION */
     /* ---------------------------------- */
