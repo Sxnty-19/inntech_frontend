@@ -829,6 +829,7 @@
     box-shadow:
       0 4px 6px rgba(0, 0, 0, 0.4),
       inset 0 0 10px rgba(0, 0, 0, 0.2); /* Sombra externa e interna */
+    border: 1px solid var(--color-border);
   }
 
   /*
