@@ -320,7 +320,7 @@
 
 <section class="main-container">
   <div class="content-wrapper">
-    <h1 class="page-title">Gestión de Reservas (ADMIN)</h1>
+    <h1 class="page-title">Gestión de Reservas</h1>
 
     <div class="category-tabs">
       <button
@@ -673,10 +673,13 @@
 
   .page-title {
     text-align: center;
-    font-size: clamp(2rem, 4vw, 2.8rem);
-    color: var(--color-accent);
-    margin-bottom: 30px;
-    font-weight: 800;
+    font-size: clamp(2.2rem, 4vw, 3.2rem);
+    color: var(--color-accent-gold);
+    margin-bottom: 20px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    text-shadow: 0 0 10px rgba(252, 211, 77, 0.2);
   }
 
   /*
@@ -714,43 +717,61 @@
   */
   .category-tabs {
     display: flex;
-    justify-content: center;
+    justify-content: center; /* ESTO CENTRA LOS BOTONES HORIZONTALMENTE DENTRO DEL CONTENEDOR */
     gap: 15px;
-    /* Reducimos el margen inferior aquí para que se vea más pegado al contenido */
-    margin-bottom: 35px;
+    margin-bottom: 10px;
     flex-wrap: wrap;
+
+    /* PROPIEDADES CLAVE PARA CENTRAR EL CONTENEDOR COMPLETO
+       (Si el contenedor es más estrecho que la pantalla, ej: max-width: 800px)
+    */
+    margin-left: auto;
+    margin-right: auto;
+
+    /* La propiedad 'align-self: center' no es necesaria en el contenedor flex padre.
+       Se elimina o se deja, pero no afecta al centrado de los botones.
+    */
+    align-self: center;
+    max-width: 800px;
+    width: 100%;
   }
 
   .tab-btn {
+    /* Asegúrate de que 'flex: 1' no fuerce a los botones a ocupar todo el espacio
+       si solo hay pocos botones. Si quieres que mantengan el min-width y se centren
+       como grupo, considera cambiar 'flex: 1' por 'flex: 0 1 auto' o eliminarlo
+       si quieres que el ancho lo determine 'min-width'.
+    */
+    flex: 0 1 auto; /* Sugerencia: Permite que el tamaño se base en el contenido/min-width */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
     padding: 12px 25px;
-    /* Usamos color-border para el borde, que es un gris oscuro */
     border: 2px solid var(--color-border);
-    border-radius: 8px;
-    background-color: var(--color-dark);
-    color: var(--color-neutral);
+    border-radius: 12px;
+    background-color: var(--color-card-bg);
+    color: var(--color-text-muted);
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
     font-size: 1rem;
-    display: flex;
-    align-items: center;
-    text-transform: none; /* Quitamos uppercase en los botones de pestaña */
+    min-width: 250px;
   }
 
   .tab-btn:hover {
-    background-color: #2a3547; /* Un poco más claro en hover */
+    background-color: #2a3547;
     color: var(--color-text-light);
-    transform: translateY(-2px); /* Pequeño levantamiento en hover */
+    border-color: var(--color-accent-blue);
   }
 
   .tab-btn.active {
-    border-color: var(--color-primary);
-    background-color: var(--color-primary);
-    color: var(--color-text-light);
-    /* Sombra azul brillante solicitada */
-    box-shadow: 0 0 15px rgba(59, 130, 246, 0.8);
-    transform: translateY(0); /* Evita que el botón activo se levante */
+    border-color: var(--color-accent-gold);
+    background-color: var(--color-accent-gold);
+    color: #111;
+    font-weight: 700;
+    box-shadow: 0 0 15px rgba(252, 211, 77, 0.5);
   }
 
   .tab-content {
@@ -1315,8 +1336,9 @@
     }
 
     /* Adaptar tabla para móvil */
-    .table-container {
-      max-height: 400px;
+    .category-tabs {
+      gap: 10px;
+      width: 100%;
     }
 
     table,
